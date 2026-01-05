@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الدمى - لوحة الإدارة</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/puppets.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM - الإدارة</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">المدير</strong></span>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Admin Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="dashboard.html">
+                        <span class="menu-icon">🏠</span>
+                        <span>الرئيسية</span>
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="puppet-management.html">
+                        <span class="menu-icon">🎭</span>
+                        <span>إدارة الدمى</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="user-management.html">
+                        <span class="menu-icon">👥</span>
+                        <span>إدارة المستخدمين</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="content-moderation.html">
+                        <span class="menu-icon">📋</span>
+                        <span>مراجعة المحتوى</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="puppets-header">
+                <div>
+                    <h1>🎭 إدارة الدمى</h1>
+                    <p class="subtitle">إضافة وتعديل وحذف الدمى</p>
+                </div>
+                <button id="addPuppetBtn" class="btn btn-primary">➕ إضافة دمية جديدة</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-3 mb-2">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalPuppets">0</div>
+                    <div class="stat-label">إجمالي الدمى</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="availablePuppets">0</div>
+                    <div class="stat-label">متاح الآن</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="mostUsed">-</div>
+                    <div class="stat-label">الأكثر استخداماً</div>
+                </div>
+            </div>
+
+            <!-- Puppets List -->
+            <div class="card">
+                <div class="card-header">قائمة الدمى</div>
+
+                <div class="search-box mb-2">
+                    <input type="text" id="searchInput" placeholder="🔍 ابحث عن دمية...">
+                </div>
+
+                <div id="puppetsTable">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>جارٍ التحميل...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Puppet Modal -->
+    <div id="puppetFormModal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close">&times;</button>
+
+            <h2 id="formTitle">إضافة دمية جديدة</h2>
+
+            <form id="puppetForm">
+                <div class="form-group">
+                    <label for="puppetName">اسم الدمية *</label>
+                    <input type="text" id="puppetName" required placeholder="مثال: الأسد الشجاع">
+                </div>
+
+                <div class="form-group">
+                    <label for="puppetType">النوع *</label>
+                    <select id="puppetType" required>
+                        <option value="">اختر النوع</option>
+                        <option value="animal">🦁 حيوان</option>
+                        <option value="family">👨‍👩‍👧‍👦 عائلة</option>
+                        <option value="character">🎪 شخصية</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="puppetEmoji">الرمز التعبيري *</label>
+                    <input type="text" id="puppetEmoji" required placeholder="🦁" maxlength="2">
+                    <small class="form-help">اختر رمز تعبيري واحد يمثل الدمية</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="puppetDescription">الوصف *</label>
+                    <textarea id="puppetDescription" rows="3" required placeholder="وصف مختصر عن الدمية..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="puppetTags">الوسوم</label>
+                    <input type="text" id="puppetTags" placeholder="افصل بفاصلة: حيوان، غابة، قوة">
+                    <small class="form-help">افصل الوسوم بفاصلة (،)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="puppetAvailable" checked>
+                        <span>الدمية متاحة للاستخدام</span>
+                    </label>
+                </div>
+
+                <div class="puppet-actions">
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="button" class="btn btn-outline" id="cancelFormBtn">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin-puppets.js"></script>
+</body>
+
+</html>

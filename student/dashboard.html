@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - الطالب</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">الطالب</strong></span>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item active">
+                    <a href="dashboard.html">
+                        <span class="menu-icon">🏠</span>
+                        <span>الرئيسية</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../stories/my-stories.html">
+                        <span class="menu-icon">📚</span>
+                        <span>قصصي</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../stories/library.html">
+                        <span class="menu-icon">📖</span>
+                        <span>مكتبة القصص</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../puppets/index.html">
+                        <span class="menu-icon">🎭</span>
+                        <span>معرض الدمى</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../productions/my-productions.html">
+                        <span class="menu-icon">🎬</span>
+                        <span>عروضي</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../productions/gallery.html">
+                        <span class="menu-icon">🖼️</span>
+                        <span>معرض العروض</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../challenges/index.html">
+                        <span class="menu-icon">🏆</span>
+                        <span>التحديات</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../learn/index.html">
+                        <span class="menu-icon">🔬</span>
+                        <span>تعلّم STEM</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <h1>لوحة التحكم</h1>
+                <div class="student-info">
+                    <div class="info-card">
+                        <span class="info-label">الصف</span>
+                        <span class="info-value" id="studentGrade">-</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">الشعبة</span>
+                        <span class="info-value" id="studentSection">-</span>
+                    </div>
+                    <div class="info-card highlight">
+                        <span class="info-label">⭐ النقاط</span>
+                        <span class="info-value" id="studentPoints">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <h2>ماذا تريد أن تفعل اليوم؟</h2>
+                <div class="grid grid-3">
+                    <a href="../stories/editor.html" class="action-card">
+                        <div class="action-icon">✍️</div>
+                        <h3>اكتب قصة جديدة</h3>
+                        <p>ابدأ في إنشاء سيناريو جديد</p>
+                    </a>
+                    <a href="../puppets/index.html" class="action-card">
+                        <div class="action-icon">🎭</div>
+                        <h3>اختر الدمى</h3>
+                        <p>تصفح واحجز الدمى لعرضك</p>
+                    </a>
+                    <a href="../productions/upload.html" class="action-card">
+                        <div class="action-icon">📤</div>
+                        <h3>ارفع عرضك</h3>
+                        <p>شارك إنتاجك مع الجميع</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- My Recent Work -->
+            <section class="recent-work">
+                <div class="section-header">
+                    <h2>أعمالي الأخيرة</h2>
+                    <a href="../stories/my-stories.html" class="link-primary">عرض الكل</a>
+                </div>
+                <div id="recentStories" class="grid grid-3">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <p>لم تبدأ بأي قصة بعد</p>
+                        <a href="../stories/editor.html" class="btn btn-primary">ابدأ الآن</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- My Productions -->
+            <section class="recent-productions">
+                <div class="section-header">
+                    <h2>عروضي المسجلة</h2>
+                    <a href="../productions/my-productions.html" class="link-primary">عرض الكل</a>
+                </div>
+                <div id="recentProductions" class="grid grid-3">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="empty-state">
+                        <div class="empty-icon">🎬</div>
+                        <p>لم ترفع أي عرض بعد</p>
+                        <a href="../productions/upload.html" class="btn btn-primary">ارفع عرضك الأول</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Active Challenges -->
+            <section class="challenges-section">
+                <div class="section-header">
+                    <h2>🏆 التحديات النشطة</h2>
+                    <a href="../challenges/index.html" class="link-primary">عرض الكل</a>
+                </div>
+                <div id="activeChallenges" class="challenges-grid">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="empty-state">
+                        <div class="empty-icon">🎯</div>
+                        <p>لا توجد تحديات نشطة حالياً</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/student-dashboard.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التسجيل - مسرح الدمى STEM</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/auth.css">
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-card auth-card-wide">
+            <div class="auth-header">
+                <div class="auth-logo">🎭</div>
+                <h1>انضم إلينا!</h1>
+                <p>ابدأ رحلتك الإبداعية في عالم مسرح الدمى STEM</p>
+            </div>
+
+            <form id="registerForm" class="auth-form">
+                <!-- User Type Selection -->
+                <div class="form-group">
+                    <label>نوع الحساب</label>
+                    <div class="user-type-selector">
+                        <label class="user-type-option">
+                            <input type="radio" name="userType" value="student" checked>
+                            <div class="user-type-card">
+                                <div class="user-type-icon">🎓</div>
+                                <div class="user-type-label">طالب</div>
+                            </div>
+                        </label>
+                        <label class="user-type-option">
+                            <input type="radio" name="userType" value="teacher">
+                            <div class="user-type-card">
+                                <div class="user-type-icon">👨‍🏫</div>
+                                <div class="user-type-label">معلم</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Full Name -->
+                <div class="form-group">
+                    <label for="fullName">الاسم الكامل</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="أدخل اسمك الكامل" required>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <input type="email" id="email" name="email" placeholder="example@email.com" required>
+                </div>
+
+                <!-- Phone (Optional) -->
+                <div class="form-group">
+                    <label for="phone">رقم الهاتف (اختياري)</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+972-XX-XXX-XXXX">
+                </div>
+
+                <!-- Student-specific fields -->
+                <div id="studentFields">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="grade">الصف</label>
+                            <select id="grade" name="grade">
+                                <option value="">اختر الصف</option>
+                                <option value="1">الأول</option>
+                                <option value="2">الثاني</option>
+                                <option value="3">الثالث</option>
+                                <option value="4">الرابع</option>
+                                <option value="5">الخامس</option>
+                                <option value="6">السادس</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="section">الشعبة</label>
+                            <select id="section" name="section">
+                                <option value="">اختر الشعبة</option>
+                                <option value="A">أ</option>
+                                <option value="B">ب</option>
+                                <option value="C">ج</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher-specific fields -->
+                <div id="teacherFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="subject">المادة التدريسية</label>
+                        <input type="text" id="subject" name="subject" placeholder="مثال: علوم، رياضيات...">
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>ملاحظة:</strong> سيتم مراجعة طلب التسجيل من قبل الإدارة قبل تفعيل حسابك
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="password">كلمة المرور</label>
+                    <input type="password" id="password" name="password" placeholder="أدخل كلمة مرور قوية" required>
+                    <small class="form-help">يجب أن تحتوي على 6 أحرف على الأقل</small>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                    <label for="confirmPassword">تأكيد كلمة المرور</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword"
+                        placeholder="أعد إدخال كلمة المرور" required>
+                </div>
+
+                <!-- Terms -->
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="terms" required>
+                        <span>أوافق على <a href="#" class="link-primary">الشروط والأحكام</a></span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                    إنشاء الحساب
+                </button>
+
+                <div class="auth-footer">
+                    <p>لديك حساب بالفعل؟ <a href="login.html">سجّل الدخول</a></p>
+                    <p><a href="../index.html" class="link-secondary">← العودة للرئيسية</a></p>
+                </div>
+            </form>
+
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+            <div id="successMessage" class="success-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/register.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,128 @@
+/* ===== Admin Panel Additional Styles ===== */
+
+/* Data Table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--spacing-md);
+}
+
+.data-table thead {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+}
+
+.data-table th {
+    padding: 12px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.data-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.data-table tbody tr {
+    transition: background var(--transition-fast);
+}
+
+.data-table tbody tr:hover {
+    background: rgba(139, 21, 56, 0.05);
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.badge-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #d39e00;
+}
+
+.badge-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+/* Icon Buttons */
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: all var(--transition-fast);
+    border-radius: var(--radius-sm);
+}
+
+.btn-icon:hover {
+    background: rgba(139, 21, 56, 0.1);
+    transform: scale(1.1);
+}
+
+/* Stats Card (enhanced) */
+.stat-card .stat-number {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Form in Modal */
+.modal-content h2 {
+    margin-bottom: var(--spacing-lg);
+    color: var(--primary);
+}
+
+.modal-content form {
+    text-align: right;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    .data-table {
+        font-size: 0.85rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 8px 4px;
+    }
+
+    .data-table thead {
+        display: none;
+    }
+
+    .data-table tr {
+        display: block;
+        margin-bottom: var(--spacing-md);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-sm);
+    }
+
+    .data-table td {
+        display: block;
+        text-align: right;
+        border: none;
+        padding: 4px 0;
+    }
+
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        margin-left: 10px;
+    }
+}

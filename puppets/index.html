@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض الدمى - مسرح الدمى STEM</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/puppets.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">المستخدم</strong></span>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="../student/dashboard.html">
+                        <span class="menu-icon">🏠</span>
+                        <span>الرئيسية</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../stories/my-stories.html">
+                        <span class="menu-icon">📚</span>
+                        <span>قصصي</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../stories/library.html">
+                        <span class="menu-icon">📖</span>
+                        <span>مكتبة القصص</span>
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="index.html">
+                        <span class="menu-icon">🎭</span>
+                        <span>معرض الدمى</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../productions/my-productions.html">
+                        <span class="menu-icon">🎬</span>
+                        <span>عروضي</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="../productions/gallery.html">
+                        <span class="menu-icon">🖼️</span>
+                        <span>معرض العروض</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="puppets-header">
+                <div>
+                    <h1>🎭 معرض الدمى</h1>
+                    <p class="subtitle">اختر الدمى المناسبة لقصتك من مجموعتنا المتنوعة</p>
+                </div>
+            </div>
+
+            <!-- Filter & Search -->
+            <div class="puppets-controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 ابحث عن دمية...">
+                </div>
+
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-type="all">الكل</button>
+                    <button class="filter-btn" data-type="animal">🦁 حيوانات</button>
+                    <button class="filter-btn" data-type="family">👨‍👩‍👧‍👦 العائلة</button>
+                    <button class="filter-btn" data-type="character">🎪 شخصيات</button>
+                </div>
+            </div>
+
+            <!-- Puppets Grid -->
+            <div id="puppetsGrid" class="puppets-grid">
+                <!-- Will be populated by JavaScript -->
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جارٍ تحميل الدمى...</p>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-icon">🎭</div>
+                <p>لم يتم العثور على دمى</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Puppet Detail Modal -->
+    <div id="puppetModal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+
+            <div class="puppet-detail">
+                <div class="puppet-detail-image">
+                    <div class="puppet-placeholder" id="modalPuppetIcon">🎭</div>
+                </div>
+
+                <div class="puppet-detail-info">
+                    <h2 id="modalPuppetName">اسم الدمية</h2>
+                    <div class="puppet-meta">
+                        <span class="puppet-type-badge" id="modalPuppetType">نوع</span>
+                        <span class="puppet-usage">استُخدمت <strong id="modalUsageCount">0</strong> مرة</span>
+                    </div>
+
+                    <p class="puppet-description" id="modalPuppetDescription">
+                        وصف الدمية يظهر هنا...
+                    </p>
+
+                    <div class="puppet-tags" id="modalPuppetTags">
+                        <!-- Tags will be added here -->
+                    </div>
+
+                    <div class="puppet-actions">
+                        <button class="btn btn-primary" id="selectPuppetBtn">
+                            اختر هذه الدمية
+                        </button>
+                        <button class="btn btn-outline" id="closeModalBtn">
+                            إغلاق
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/puppets.js"></script>
+</body>
+
+</html>
