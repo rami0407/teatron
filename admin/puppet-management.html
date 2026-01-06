@@ -124,24 +124,27 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="puppetType">النوع *</label>
-                    <select id="puppetType" required>
+                    <label for="puppetCategory">النوع *</label>
+                    <select id="puppetCategory" required>
                         <option value="">اختر النوع</option>
-                        <option value="animal">🦁 حيوان</option>
-                        <option value="family">👨‍👩‍👧‍👦 عائلة</option>
-                        <option value="character">🎪 شخصية</option>
+                        <option value="animals">حيوانات</option>
+                        <option value="family">عائلة</option>
+                        <option value="characters">شخصيات</option>
+                        <option value="other">أخرى</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="puppetEmoji">الرمز التعبيري *</label>
-                    <input type="text" id="puppetEmoji" required placeholder="🦁" maxlength="2">
-                    <small class="form-help">اختر رمز تعبيري واحد يمثل الدمية</small>
+                    <label for="puppetEmoji">الرمز التعبيري</label>
+                    <input type="text" id="puppetEmoji" placeholder="🐻" maxlength="2" readonly
+                        style="background: #f5f5f5; cursor: not-allowed;">
+                    <small style="color: #64748b; display: block; margin-top: 5px;">سيتم اختياره تلقائياً حسب اسم
+                        الدمية</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="puppetDescription">الوصف *</label>
-                    <textarea id="puppetDescription" rows="3" required placeholder="وصف مختصر عن الدمية..."></textarea>
+                    <label for="puppetDescription">الوصف</label>
+                    <textarea id="puppetDescription" rows="3" placeholder="وصف مختصر عن الدمية... (اختياري)"></textarea>
                 </div>
 
                 <div class="form-group">

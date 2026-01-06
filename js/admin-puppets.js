@@ -123,6 +123,56 @@ function getTypeLabel(type) {
     return labels[type] || type;
 }
 
+// ============================================
+// Auto-generate emoji based on puppet name
+// ============================================
+
+function autoGenerateEmoji(name) {
+    const emojiMap = {
+        // Animals
+        'أسد': '🦁', 'lion': '🦁',
+        'دب': '🐻', 'bear': '🐻',
+        'أرنب': '🐰', 'rabbit': '🐰',
+        'قط': '🐱', 'cat': '🐱',
+        'كلب': '🐶', 'dog': '🐶',
+        'فيل': '🐘', 'elephant': '🐘',
+        'زرافة': '🦒', 'giraffe': '🦒',
+        'قرد': '🐵', 'monkey': '🐵',
+        'طائر': '🐦', 'bird': '🐦',
+        'سمكة': '🐠', 'fish': '🐠',
+        'فراشة': '🦋', 'butterfly': '🦋',
+        'نحلة': '🐝', 'bee': '🐝',
+
+        // Family
+        'ولد': '👦', 'boy': '👦',
+        'بنت': '👧', 'girl': '👧',
+        'أم': '👩', 'mother': '👩',
+        'أب': '👨', 'father': '👨',
+        'جد': '👴', 'grandfather': '👴',
+        'جدة': '👵', 'grandmother': '👵',
+
+        // Characters
+        'معلم': '👨‍🏫', 'teacher': '👨‍🏫',
+        'طبيب': '👨‍⚕️', 'doctor': '👨‍⚕️',
+        'عالم': '👨‍🔬', 'scientist': '👨‍🔬',
+        'رائد': '👨‍🚀', 'astronaut': '👨‍🚀',
+        'مهندس': '👷', 'engineer': '👷',
+        'فنان': '🎨', 'artist': '🎨'
+    };
+
+    const lowerName = (name || '').toLowerCase().trim();
+
+    // Check exact match
+    for (const [key, emoji] of Object.entries(emojiMap)) {
+        if (lowerName.includes(key.toLowerCase())) {
+            return emoji;
+        }
+    }
+
+    // Default emoji
+    return '🎭';
+}
+
 // Show puppet form modal
 function showPuppetForm(puppetId = null) {
     editingPuppetId = puppetId;
@@ -134,9 +184,9 @@ function showPuppetForm(puppetId = null) {
         const puppet = allPuppets.find(p => p.id === puppetId);
         document.getElementById('formTitle').textContent = 'تعديل الدمية';
         document.getElementById('puppetName').value = puppet.name;
-        document.getElementById('puppetType').value = puppet.type;
+        document.getElementById('puppetCategory').value = puppet.category || puppet.type;
         document.getElementById('puppetEmoji').value = puppet.emoji || '';
-        document.getElementById('puppetDescription').value = puppet.description;
+        document.getElementById('puppetDescription').value = puppet.description || '';
         document.getElementById('puppetTags').value = (puppet.tags || []).join('، ');
         document.getElementById('puppetAvailable').checked = puppet.available;
     } else {
@@ -158,13 +208,31 @@ function hidePuppetForm() {
 async function savePuppet(e) {
     e.preventDefault();
 
+    const name = document.getElementById('puppetName').value.trim();
+    const category = document.getElementById('puppetCategory').value;
+    let emoji = document.getElementById('puppetEmoji').value.trim();
+    const description = document.getElementById('puppetDescription').value.trim();
+    const tags = document.getElementById('puppetTags').value.split('،').map(t => t.trim()).filter(t => t);
+    const available = document.getElementById('puppetAvailable').checked;
+
+    if (!name || !category) {
+        alert('الرجاء ملء جميع الحقول المطلوبة');
+        return;
+    }
+
+    // Auto-generate emoji if empty
+    if (!emoji) {
+        emoji = autoGenerateEmoji(name);
+    }
+
     const puppetData = {
-        name: document.getElementById('puppetName').value.trim(),
-        type: document.getElementById('puppetType').value,
-        emoji: document.getElementById('puppetEmoji').value.trim(),
-        description: document.getElementById('puppetDescription').value.trim(),
-        tags: document.getElementById('puppetTags').value.split('،').map(t => t.trim()).filter(t => t),
-        available: document.getElementById('puppetAvailable').checked
+        name,
+        category,
+        type: category, // Keep backward compatibility
+        emoji,
+        description: description || '', // Optional
+        tags,
+        available
     };
 
     try {
@@ -230,6 +298,13 @@ function setupEventListeners() {
 
     // Form submit
     document.getElementById('puppetForm').addEventListener('submit', savePuppet);
+
+    // Auto-generate emoji on name input
+    document.getElementById('puppetName').addEventListener('input', (e) => {
+        const name = e.target.value;
+        const emojiInput = document.getElementById('puppetEmoji');
+        emojiInput.value = autoGenerateEmoji(name);
+    });
 
     // Cancel button
     document.getElementById('cancelFormBtn').addEventListener('click', hidePuppetForm);
