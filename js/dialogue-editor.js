@@ -427,6 +427,119 @@ function exportToTxt() {
     URL.revokeObjectURL(url);
 }
 
+async function exportToWord() {
+    if (!currentDialogue) return;
+
+    try {
+        const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType } = docx;
+
+        // Create document with RTL support for Arabic
+        const doc = new Document({
+            sections: [{
+                properties: {
+                    page: {
+                        margin: {
+                            top: 1440,
+                            right: 1440,
+                            bottom: 1440,
+                            left: 1440
+                        }
+                    }
+                },
+                children: [
+                    // Title
+                    new Paragraph({
+                        text: currentDialogue.title,
+                        heading: HeadingLevel.HEADING_1,
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 400 },
+                        bidirectional: currentDialogue.language === 'ar' || currentDialogue.language === 'he'
+                    }),
+
+                    // Metadata
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: `اللغة: ${getLanguageName(currentDialogue.language)}`,
+                                bold: true
+                            })
+                        ],
+                        spacing: { after: 200 },
+                        bidirectional: true
+                    }),
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: `النوع: ${getTypeName(currentAssessment.settings.storyType)}`,
+                                bold: true
+                            })
+                        ],
+                        spacing: { after: 200 },
+                        bidirectional: true
+                    }),
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: `الطول: ${getLengthName(currentAssessment.settings.length)}`,
+                                bold: true
+                            })
+                        ],
+                        spacing: { after: 200 },
+                        bidirectional: true
+                    }),
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: `الدمى: ${currentDialogue.puppets.map(p => p.name).join(', ')}`,
+                                bold: true
+                            })
+                        ],
+                        spacing: { after: 400 },
+                        bidirectional: true
+                    }),
+
+                    // Separator
+                    new Paragraph({
+                        text: '─'.repeat(50),
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 400 }
+                    }),
+
+                    // Dialogue content
+                    ...currentDialogue.content.flatMap(line => [
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: `${line.speaker}:`,
+                                    bold: true,
+                                    color: '6366f1',
+                                    size: 28
+                                })
+                            ],
+                            spacing: { before: 200, after: 100 },
+                            bidirectional: currentDialogue.language === 'ar' || currentDialogue.language === 'he'
+                        }),
+                        new Paragraph({
+                            text: line.text,
+                            spacing: { after: 300 },
+                            indent: { left: 400 },
+                            bidirectional: currentDialogue.language === 'ar' || currentDialogue.language === 'he'
+                        })
+                    ])
+                ]
+            }]
+        });
+
+        // Generate and download
+        const blob = await docx.Packer.toBlob(doc);
+        saveAs(blob, `${currentDialogue.title}.docx`);
+
+    } catch (error) {
+        console.error('Error exporting to Word:', error);
+        alert('حدث خطأ في تصدير الملف. الرجاء المحاولة مرة أخرى.');
+    }
+}
+
 // ============================================
 // User Info
 // ============================================
