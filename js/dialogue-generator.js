@@ -239,28 +239,34 @@ async function loadPuppets() {
                 { id: 'astronaut', emoji: '👨‍🚀', name: 'رائد الفضاء', category: 'characters' }
             ];
         } else {
-            // Registered user: load from Firestore
+            // Registered user: try to load from Firestore first
             const puppetsSnapshot = await firebase.firestore()
                 .collection('puppets')
                 .where('available', '==', true)
                 .get();
 
-            if (puppetsSnapshot.empty) {
-                gallery.innerHTML = `
-                    <div class="loading-puppets">
-                        <p>لا توجد دمى متاحة حالياً</p>
-                    </div>
-                `;
-                return;
+            if (!puppetsSnapshot.empty) {
+                puppets = puppetsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Sort by name in JavaScript
+                puppets.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+            } else {
+                // Database is empty - use mock data as fallback
+                console.log('No puppets in database, using mock data');
+                puppets = [
+                    { id: 'lion', emoji: '🦁', name: 'الأسد', category: 'animals' },
+                    { id: 'bear', emoji: '🐻', name: 'الدب', category: 'animals' },
+                    { id: 'rabbit', emoji: '🐰', name: 'الأرنب', category: 'animals' },
+                    { id: 'boy', emoji: '👦', name: 'الولد', category: 'family' },
+                    { id: 'girl', emoji: '👧', name: 'البنت', category: 'family' },
+                    { id: 'scientist', emoji: '👨‍🔬', name: 'العالم', category: 'characters' },
+                    { id: 'teacher', emoji: '👨‍🏫', name: 'المعلم', category: 'characters' },
+                    { id: 'astronaut', emoji: '👨‍🚀', name: 'رائد الفضاء', category: 'characters' }
+                ];
             }
-
-            puppets = puppetsSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            // Sort by name in JavaScript
-            puppets.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
         }
 
         gallery.innerHTML = '';
