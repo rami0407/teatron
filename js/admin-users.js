@@ -50,12 +50,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadUsers() {
     try {
-        const usersSnapshot = await db.collection('users').orderBy('createdAt', 'desc').get();
+        const usersSnapshot = await db.collection('users').get();
 
         allUsers = usersSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+
+        // Sort by name in JavaScript
+        allUsers.sort((a, b) => {
+            const nameA = (a.name || '').toLowerCase();
+            const nameB = (b.name || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
 
         filteredUsers = [...allUsers];
 
