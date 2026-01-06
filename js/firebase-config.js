@@ -15,7 +15,8 @@ firebase.initializeApp(firebaseConfig);
 // Initialize services
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
+// Storage is optional - only initialize if needed
+const storage = typeof firebase.storage === 'function' ? firebase.storage() : null;
 
 // Set language to Arabic
 auth.languageCode = 'ar';

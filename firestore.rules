@@ -37,7 +37,7 @@ service cloud.firestore {
     
     // Puppets collection
     match /puppets/{puppetId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Public read access for guest mode
       allow create, update, delete: if isAdmin();
     }
     
