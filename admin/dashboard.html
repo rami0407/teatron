@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 لوحة التحكم الإدارية - مسرح الدمى STEM</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM - الإدارة</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">المدير</strong></span>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Admin Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item active">
+                    <a href="dashboard.html">
+                        <span class="menu-icon">🏠</span>
+                        <span>الرئيسية</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="users.html">
+                        <span class="menu-icon">👥</span>
+                        <span>إدارة المستخدمين</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="puppet-management.html">
+                        <span class="menu-icon">🎭</span>
+                        <span>إدارة الدمى</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="analytics.html">
+                        <span class="menu-icon">📊</span>
+                        <span>التحليلات</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="content.html">
+                        <span class="menu-icon">📋</span>
+                        <span>المحتوى</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <div>
+                    <h1>🏠 لوحة التحكم الرئيسية</h1>
+                    <p class="subtitle">نظرة عامة على النظام</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" id="refreshBtn">🔄 تحديث</button>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stats-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="stats-icon">👥</div>
+                    <div class="stats-details">
+                        <div class="stats-number" id="totalUsers">0</div>
+                        <div class="stats-label">إجمالي المستخدمين</div>
+                        <div class="stats-trend">
+                            <span class="trend-up">↑ <span id="newUsersWeek">0</span></span>
+                            <span class="stats-hint">هذا الأسبوع</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="stats-icon">🎭</div>
+                    <div class="stats-details">
+                        <div class="stats-number" id="totalPuppets">0</div>
+                        <div class="stats-label">عدد الدمى</div>
+                        <div class="stats-trend">
+                            <span id="availablePuppets">0</span>
+                            <span class="stats-hint">متاح الآن</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="stats-icon">📝</div>
+                    <div class="stats-details">
+                        <div class="stats-number" id="totalDialogues">0</div>
+                        <div class="stats-label">الحوارات المولّدة</div>
+                        <div class="stats-trend">
+                            <span class="trend-up">↑ <span id="newDialoguesToday">0</span></span>
+                            <span class="stats-hint">اليوم</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <div class="stats-icon">📊</div>
+                    <div class="stats-details">
+                        <div class="stats-number" id="totalAssessments">0</div>
+                        <div class="stats-label">التقييمات</div>
+                        <div class="stats-trend">
+                            <span id="completionRate">0%</span>
+                            <span class="stats-hint">معدل الإكمال</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-2 mt-2">
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📌 آخر الأنشطة</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentActivity">
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <p>جارٍ التحميل...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Popular Puppets -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>⭐ الدمى الأكثر استخداماً</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="popularPuppets">
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <p>جارٍ التحميل...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="card mt-2">
+                <div class="card-header">
+                    <h3>🔧 حالة النظام</h3>
+                </div>
+                <div class="card-body">
+                    <div class="system-status-grid">
+                        <div class="status-item">
+                            <span class="status-indicator status-active"></span>
+                            <div>
+                                <div class="status-label">Firebase</div>
+                                <div class="status-value">متصل</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-indicator status-active"></span>
+                            <div>
+                                <div class="status-label">Firestore</div>
+                                <div class="status-value">يعمل بشكل طبيعي</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-indicator status-active"></span>
+                            <div>
+                                <div class="status-label">Authentication</div>
+                                <div class="status-value">نشط</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-indicator" id="storageStatus"></span>
+                            <div>
+                                <div class="status-label">Storage</div>
+                                <div class="status-value" id="storageValue">جارٍ التحقق...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin-dashboard.js"></script>
+</body>
+
+</html>

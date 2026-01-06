@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👥 إدارة المستخدمين - لوحة الإدارة</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM - الإدارة</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">المدير</strong></span>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Admin Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="dashboard.html">
+                        <span class="menu-icon">🏠</span>
+                        <span>الرئيسية</span>
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="users.html">
+                        <span class="menu-icon">👥</span>
+                        <span>إدارة المستخدمين</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="puppet-management.html">
+                        <span class="menu-icon">🎭</span>
+                        <span>إدارة الدمى</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="analytics.html">
+                        <span class="menu-icon">📊</span>
+                        <span>التحليلات</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="content.html">
+                        <span class="menu-icon">📋</span>
+                        <span>المحتوى</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <div>
+                    <h1>👥 إدارة المستخدمين</h1>
+                    <p class="subtitle">عرض وإدارة جميع المستخدمين</p>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-4 mb-2">
+                <div class="stat-card" style="border-right: 4px solid #667eea;">
+                    <div class="stat-number" id="totalUsers">0</div>
+                    <div class="stat-label">إجمالي المستخدمين</div>
+                </div>
+                <div class="stat-card" style="border-right: 4px solid #f093fb;">
+                    <div class="stat-number" id="studentCount">0</div>
+                    <div class="stat-label">الطلاب</div>
+                </div>
+                <div class="stat-card" style="border-right: 4px solid #4facfe;">
+                    <div class="stat-number" id="teacherCount">0</div>
+                    <div class="stat-label">المعلمون</div>
+                </div>
+                <div class="stat-card" style="border-right: 4px solid #fa709a;">
+                    <div class="stat-number" id="adminCount">0</div>
+                    <div class="stat-label">المدراء</div>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="card mb-2">
+                <div class="filters-row">
+                    <div class="search-box" style="flex: 1;">
+                        <input type="text" id="searchInput" placeholder="🔍 ابحث عن مستخدم بالاسم أو البريد...">
+                    </div>
+                    <select id="roleFilter" class="filter-select">
+                        <option value="">كل المستخدمين</option>
+                        <option value="student">طلاب فقط</option>
+                        <option value="teacher">معلمون فقط</option>
+                        <option value="admin">مدراء فقط</option>
+                    </select>
+                    <button id="exportBtn" class="btn btn-outline">📥 تصدير Excel</button>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="card">
+                <div class="card-header">قائمة المستخدمين</div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>المستخدم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>الدور</th>
+                                <th>تاريخ التسجيل</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="6" class="loading-state">
+                                    <div class="spinner"></div>
+                                    <p>جارٍ التحميل...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="userDetailsModal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content" style="max-width: 700px;">
+            <button class="modal-close">&times;</button>
+
+            <h2>تفاصيل المستخدم</h2>
+
+            <div id="userDetailsContent">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin-users.js"></script>
+</body>
+
+</html>
