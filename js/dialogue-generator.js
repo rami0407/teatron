@@ -243,7 +243,6 @@ async function loadPuppets() {
             const puppetsSnapshot = await firebase.firestore()
                 .collection('puppets')
                 .where('available', '==', true)
-                .orderBy('name')
                 .get();
 
             if (puppetsSnapshot.empty) {
@@ -259,6 +258,9 @@ async function loadPuppets() {
                 id: doc.id,
                 ...doc.data()
             }));
+
+            // Sort by name in JavaScript
+            puppets.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
         }
 
         gallery.innerHTML = '';
