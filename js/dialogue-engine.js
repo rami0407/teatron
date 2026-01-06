@@ -11,15 +11,52 @@ class DialogueEngine {
     }
 
     async loadPuppets() {
-        const puppetPromises = this.assessment.puppets.map(puppetId =>
-            firebase.firestore().collection('puppets').doc(puppetId).get()
-        );
+        // Check if we have puppet IDs or full puppet objects
+        const firstPuppet = this.assessment.puppets[0];
 
-        const puppetDocs = await Promise.all(puppetPromises);
-        this.puppets = puppetDocs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        // If puppets are already loaded objects (guest mode or Already loaded)
+        if (typeof firstPuppet === 'object' && firstPuppet.name) {
+            this.puppets = this.assessment.puppets;
+            return;
+        }
+
+        // Mock puppets for guest mode (fallback)
+        const mockPuppets = {
+            'lion': { id: 'lion', emoji: '🦁', name: 'الأسد', category: 'animals' },
+            'bear': { id: 'bear', emoji: '🐻', name: 'الدب', category: 'animals' },
+            'rabbit': { id: 'rabbit', emoji: '🐰', name: 'الأرنب', category: 'animals' },
+            'boy': { id: 'boy', emoji: '👦', name: 'الولد', category: 'family' },
+            'girl': { id: 'girl', emoji: '👧', name: 'البنت', category: 'family' },
+            'scientist': { id: 'scientist', emoji: '👨‍🔬', name: 'العالم', category: 'characters' },
+            'teacher': { id: 'teacher', emoji: '👨‍🏫', name: 'المعلم', category: 'characters' },
+            'astronaut': { id: 'astronaut', emoji: '👨‍🚀', name: 'رائد الفضاء', category: 'characters' }
+        };
+
+        // Try to load from Firestore if IDs are provided
+        if (typeof firstPuppet === 'string') {
+            try {
+                const puppetPromises = this.assessment.puppets.map(async (puppetId) => {
+                    // Try Firestore first
+                    try {
+                        const doc = await firebase.firestore().collection('puppets').doc(puppetId).get();
+                        if (doc.exists) {
+                            return { id: doc.id, ...doc.data() };
+                        }
+                    } catch (error) {
+                        console.log('Firestore not available, using mock data');
+                    }
+
+                    // Fallback to mock data
+                    return mockPuppets[puppetId] || mockPuppets['lion'];
+                });
+
+                this.puppets = await Promise.all(puppetPromises);
+            } catch (error) {
+                console.error('Error loading puppets:', error);
+                // Final fallback: use mock puppets
+                this.puppets = this.assessment.puppets.map(id => mockPuppets[id] || mockPuppets['lion']);
+            }
+        }
     }
 
     async generate() {
