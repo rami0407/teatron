@@ -61,6 +61,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     stopBtn.addEventListener('click', stopDialogue);
     saveBtn.addEventListener('click', saveDialogue);
     exportTxtBtn.addEventListener('click', exportToTxt);
+
+    const exportDocxBtn = document.getElementById('exportDocxBtn');
+    if (exportDocxBtn) {
+        exportDocxBtn.addEventListener('click', exportToWord);
+    }
+
     newDialogueBtn.addEventListener('click', () => {
         window.location.href = 'dialogue-generator.html';
     });

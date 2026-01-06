@@ -296,7 +296,8 @@
                     <h3 class="card-title">⚙️ الإجراءات</h3>
                     <div class="action-buttons">
                         <button id="saveBtn" class="btn btn-primary">💾 حفظ الحوار</button>
-                        <button id="exportTxtBtn" class="btn btn-outline">📄 تصدير TXT</button>
+                        <button id="exportDocxBtn" class="btn btn-outline">📄 تصدير Word</button>
+                        <button id="exportTxtBtn" class="btn btn-outline">📝 تصدير TXT</button>
                         <button id="newDialogueBtn" class="btn btn-outline">✨ إنشاء حوار جديد</button>
                     </div>
                 </div>
@@ -308,6 +309,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Libraries for Word export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <!-- Scripts -->
     <script src="../js/firebase-config.js"></script>
