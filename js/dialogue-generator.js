@@ -5,6 +5,7 @@ let currentStep = 1;
 const totalSteps = 5;
 let selectedPuppets = [];
 const maxPuppets = 2;
+let isGuestMode = false; // Guest mode flag
 
 // DOM Elements
 const form = document.getElementById('assessmentForm');
@@ -15,6 +16,22 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if guest mode
+    const urlParams = new URLSearchParams(window.location.search);
+    isGuestMode = urlParams.get('mode') === 'guest';
+
+    if (isGuestMode) {
+        console.log('Guest mode activated');
+        // Update UI for guest mode
+        const userGreeting = document.querySelector('.user-greeting');
+        if (userGreeting) {
+            userGreeting.innerHTML = '<strong>🎭 وضع الضيف</strong>';
+        }
+    } else {
+        // Load user name only if not guest
+        loadUserName();
+    }
+
     initializeSliders();
     loadPuppets();
     updateNavigation();
@@ -23,9 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
     prevBtn.addEventListener('click', previousStep);
     nextBtn.addEventListener('click', nextStep);
     form.addEventListener('submit', handleSubmit);
-
-    // Load user name
-    loadUserName();
 });
 
 // ============================================
@@ -203,26 +217,46 @@ async function loadPuppets() {
     const gallery = document.getElementById('puppetGallery');
 
     try {
-        const puppetsSnapshot = await firebase.firestore()
-            .collection('puppets')
-            .where('available', '==', true)
-            .orderBy('name')
-            .get();
+        let puppets = [];
 
-        gallery.innerHTML = '';
+        if (isGuestMode) {
+            // Guest mode: use mock puppet data
+            puppets = [
+                { id: 'lion', emoji: '🦁', name: 'الأسد', category: 'animals' },
+                { id: 'bear', emoji: '🐻', name: 'الدب', category: 'animals' },
+                { id: 'rabbit', emoji: '🐰', name: 'الأرنب', category: 'animals' },
+                { id: 'boy', emoji: '👦', name: 'الولد', category: 'family' },
+                { id: 'girl', emoji: '👧', name: 'البنت', category: 'family' },
+                { id: 'scientist', emoji: '👨‍🔬', name: 'العالم', category: 'characters' },
+                { id: 'teacher', emoji: '👨‍🏫', name: 'المعلم', category: 'characters' },
+                { id: 'astronaut', emoji: '👨‍🚀', name: 'رائد الفضاء', category: 'characters' }
+            ];
+        } else {
+            // Registered user: load from Firestore
+            const puppetsSnapshot = await firebase.firestore()
+                .collection('puppets')
+                .where('available', '==', true)
+                .orderBy('name')
+                .get();
 
-        if (puppetsSnapshot.empty) {
-            gallery.innerHTML = `
-                <div class="loading-puppets">
-                    <p>لا توجد دمى متاحة حالياً</p>
-                </div>
-            `;
-            return;
+            if (puppetsSnapshot.empty) {
+                gallery.innerHTML = `
+                    <div class="loading-puppets">
+                        <p>لا توجد دمى متاحة حالياً</p>
+                    </div>
+                `;
+                return;
+            }
+
+            puppets = puppetsSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
         }
 
-        puppetsSnapshot.forEach(doc => {
-            const puppet = doc.data();
-            const puppetCard = createPuppetCard(doc.id, puppet);
+        gallery.innerHTML = '';
+        puppets.forEach(puppet => {
+            const puppetCard = createPuppetCard(puppet.id, puppet);
             gallery.appendChild(puppetCard);
         });
 
@@ -321,23 +355,39 @@ async function handleSubmit(e) {
         // Collect all form data
         const formData = collectFormData();
 
-        // Get current user
-        const user = firebase.auth().currentUser;
-        if (!user) {
-            throw new Error('يجب تسجيل الدخول أولاً');
-        }
-
-        // Save assessment data
-        const assessmentRef = await firebase.firestore()
-            .collection('assessments')
-            .add({
-                studentId: user.uid,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        if (isGuestMode) {
+            // Guest mode: save to localStorage
+            const guestAssessment = {
+                id: 'guest_' + Date.now(),
+                timestamp: new Date().toISOString(),
+                mode: 'guest',
                 ...formData
-            });
+            };
 
-        // Redirect to dialogue editor with assessment ID
-        window.location.href = `dialogue-editor.html?assessment=${assessmentRef.id}`;
+            localStorage.setItem('guestAssessment', JSON.stringify(guestAssessment));
+
+            // Redirect to dialogue editor with guest mode
+            window.location.href = `dialogue-editor.html?mode=guest&assessment=${guestAssessment.id}`;
+
+        } else {
+            // Registered user: save to Firestore
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                throw new Error('يجب تسجيل الدخول أولاً');
+            }
+
+            // Save assessment data
+            const assessmentRef = await firebase.firestore()
+                .collection('assessments')
+                .add({
+                    studentId: user.uid,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    ...formData
+                });
+
+            // Redirect to dialogue editor with assessment ID
+            window.location.href = `dialogue-editor.html?assessment=${assessmentRef.id}`;
+        }
 
     } catch (error) {
         console.error('Error submitting form:', error);

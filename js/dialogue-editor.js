@@ -6,6 +6,7 @@ let currentAssessment = null;
 let synth = window.speechSynthesis;
 let currentUtterance = null;
 let availableVoices = [];
+let isGuestMode = false;
 
 // DOM Elements
 const loadingGeneration = document.getElementById('loadingGeneration');
@@ -23,16 +24,29 @@ const newDialogueBtn = document.getElementById('newDialogueBtn');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-    loadUserName();
-
-    // Get assessment ID from URL
+    // Check if guest mode
     const urlParams = new URLSearchParams(window.location.search);
+    isGuestMode = urlParams.get('mode') === 'guest';
     const assessmentId = urlParams.get('assessment');
 
     if (!assessmentId) {
         alert('خطأ: لم يتم العثور على بيانات التقييم');
         window.location.href = 'dialogue-generator.html';
         return;
+    }
+
+    // Update UI for guest mode
+    if (isGuestMode) {
+        const userGreeting = document.querySelector('.user-greeting');
+        if (userGreeting) {
+            userGreeting.innerHTML = '<strong>🎭 وضع الضيف</strong>';
+        }
+        // Hide save button for guests
+        if (saveBtn) {
+            saveBtn.style.display = 'none';
+        }
+    } else {
+        loadUserName();
     }
 
     // Load assessment and generate dialogue
@@ -58,20 +72,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadAssessmentAndGenerate(assessmentId) {
     try {
-        // Load assessment from Firestore
-        const assessmentDoc = await firebase.firestore()
-            .collection('assessments')
-            .doc(assessmentId)
-            .get();
+        if (isGuestMode) {
+            // Guest mode: load from localStorage
+            const guestData = localStorage.getItem('guestAssessment');
+            if (!guestData) {
+                throw new Error('لم يتم العثور على بيانات التقييم');
+            }
 
-        if (!assessmentDoc.exists) {
-            throw new Error('لم يتم العثور على بيانات التقييم');
+            currentAssessment = JSON.parse(guestData);
+
+        } else {
+            // Registered user: load from Firestore
+            const assessmentDoc = await firebase.firestore()
+                .collection('assessments')
+                .doc(assessmentId)
+                .get();
+
+            if (!assessmentDoc.exists) {
+                throw new Error('لم يتم العثور على بيانات التقييم');
+            }
+
+            currentAssessment = {
+                id: assessmentId,
+                ...assessmentDoc.data()
+            };
         }
-
-        currentAssessment = {
-            id: assessmentId,
-            ...assessmentDoc.data()
-        };
 
         // Generate dialogue using the engine
         const engine = new DialogueEngine(currentAssessment);
