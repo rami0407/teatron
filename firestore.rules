@@ -63,6 +63,23 @@ service cloud.firestore {
       allow create, update, delete: if isTeacher() || isAdmin();
     }
     
+    // Assessments collection (for dialogue generator)
+    match /assessments/{assessmentId} {
+      allow read: if isOwner(resource.data.studentId) || isTeacher() || isAdmin();
+      allow create: if isStudent() && request.auth.uid == request.resource.data.studentId;
+      allow update: if isOwner(resource.data.studentId);
+      allow delete: if isOwner(resource.data.studentId) || isAdmin();
+    }
+    
+    // Dialogues collection (generated dialogues)
+    match /dialogues/{dialogueId} {
+      allow read: if isOwner(resource.data.studentId) || isTeacher() || isAdmin();
+      allow create: if isStudent() && request.auth.uid == request.resource.data.studentId;
+      allow update: if isOwner(resource.data.studentId);
+      allow delete: if isOwner(resource.data.studentId) || isAdmin();
+    }
+
+    
     // Comments collection
     match /productions/{productionId}/comments/{commentId} {
       allow read: if isAuthenticated();

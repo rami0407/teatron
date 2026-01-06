@@ -1,0 +1,413 @@
+// Dialogue Generator - Form Controller
+// Handles multi-step form navigation and data collection
+
+let currentStep = 1;
+const totalSteps = 5;
+let selectedPuppets = [];
+const maxPuppets = 2;
+
+// DOM Elements
+const form = document.getElementById('assessmentForm');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const generateBtn = document.getElementById('generateBtn');
+const loadingOverlay = document.getElementById('loadingOverlay');
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    initializeSliders();
+    loadPuppets();
+    updateNavigation();
+
+    // Event Listeners
+    prevBtn.addEventListener('click', previousStep);
+    nextBtn.addEventListener('click', nextStep);
+    form.addEventListener('submit', handleSubmit);
+
+    // Load user name
+    loadUserName();
+});
+
+// ============================================
+// Step Navigation
+// ============================================
+
+function nextStep() {
+    if (validateCurrentStep()) {
+        if (currentStep < totalSteps) {
+            // Move to next step
+            hideStep(currentStep);
+            currentStep++;
+            showStep(currentStep);
+            updateNavigation();
+            updateProgressBar();
+        }
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        hideStep(currentStep);
+        currentStep--;
+        showStep(currentStep);
+        updateNavigation();
+        updateProgressBar();
+    }
+}
+
+function showStep(stepNumber) {
+    const step = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
+    if (step) {
+        step.classList.add('active');
+        step.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function hideStep(stepNumber) {
+    const step = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
+    if (step) {
+        step.classList.remove('active');
+    }
+}
+
+function updateNavigation() {
+    // Show/hide buttons based on current step
+    prevBtn.style.display = currentStep === 1 ? 'none' : 'inline-block';
+    nextBtn.style.display = currentStep === totalSteps ? 'none' : 'inline-block';
+    generateBtn.style.display = currentStep === totalSteps ? 'inline-block' : 'none';
+}
+
+function updateProgressBar() {
+    // Update progress steps
+    document.querySelectorAll('.progress-step').forEach((step, index) => {
+        const stepNumber = index + 1;
+
+        if (stepNumber < currentStep) {
+            step.classList.add('completed');
+            step.classList.remove('active');
+        } else if (stepNumber === currentStep) {
+            step.classList.add('active');
+            step.classList.remove('completed');
+        } else {
+            step.classList.remove('active', 'completed');
+        }
+    });
+}
+
+// ============================================
+// Form Validation
+// ============================================
+
+function validateCurrentStep() {
+    const currentStepElement = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+
+    // Get all required inputs in current step
+    const requiredInputs = currentStepElement.querySelectorAll('[required]');
+
+    for (let input of requiredInputs) {
+        if (input.type === 'radio') {
+            // Check if at least one radio in the group is checked
+            const radioGroup = currentStepElement.querySelectorAll(`[name="${input.name}"]`);
+            const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+
+            if (!isChecked) {
+                alert('الرجاء الإجابة على جميع الأسئلة المطلوبة');
+                return false;
+            }
+        } else if (input.tagName === 'SELECT' && !input.value) {
+            alert('الرجاء اختيار إجابة من القائمة');
+            input.focus();
+            return false;
+        }
+    }
+
+    // Special validation for step 4 (puppet selection)
+    if (currentStep === 4) {
+        if (selectedPuppets.length === 0) {
+            alert('الرجاء اختيار دمية واحدة على الأقل');
+            return false;
+        }
+    }
+
+    // Check subject selection limit (max 3)
+    if (currentStep === 2) {
+        const selectedSubjects = currentStepElement.querySelectorAll('input[name="subjects"]:checked');
+        if (selectedSubjects.length > 3) {
+            alert('يمكنك اختيار 3 مواد كحد أقصى');
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// ============================================
+// Slider Handlers
+// ============================================
+
+function initializeSliders() {
+    // Confidence slider
+    const confidenceSlider = document.getElementById('confidenceSlider');
+    const confidenceValue = document.getElementById('confidenceValue');
+
+    if (confidenceSlider) {
+        confidenceSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            const labels = ['منخفضة جداً', 'منخفضة', 'متوسطة', 'عالية', 'عالية جداً'];
+            confidenceValue.textContent = labels[value - 1];
+        });
+    }
+
+    // Introvert slider
+    const introvertSlider = document.getElementById('introvertSlider');
+    const introvertValue = document.getElementById('introvertValue');
+
+    if (introvertSlider) {
+        introvertSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            const labels = ['هادئ جداً', 'هادئ', 'متوازن', 'منفتح', 'منفتح جداً'];
+            introvertValue.textContent = labels[value - 1];
+        });
+    }
+
+    // Leadership slider
+    const leadershipSlider = document.getElementById('leadershipSlider');
+    const leadershipValue = document.getElementById('leadershipValue');
+
+    if (leadershipSlider) {
+        leadershipSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            const labels = ['تابع', 'يفضل التبعية', 'متوازن', 'يحب القيادة', 'قائد'];
+            leadershipValue.textContent = labels[value - 1];
+        });
+    }
+
+    // Cooperation slider
+    const cooperationSlider = document.getElementById('cooperationSlider');
+    const cooperationValue = document.getElementById('cooperationValue');
+
+    if (cooperationSlider) {
+        cooperationSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            const labels = ['فردي جداً', 'يفضل العمل وحده', 'متوازن', 'يحب التعاون', 'جماعي جداً'];
+            cooperationValue.textContent = labels[value - 1];
+        });
+    }
+}
+
+// ============================================
+// Puppet Loading and Selection
+// ============================================
+
+async function loadPuppets() {
+    const gallery = document.getElementById('puppetGallery');
+
+    try {
+        const puppetsSnapshot = await firebase.firestore()
+            .collection('puppets')
+            .where('available', '==', true)
+            .orderBy('name')
+            .get();
+
+        gallery.innerHTML = '';
+
+        if (puppetsSnapshot.empty) {
+            gallery.innerHTML = `
+                <div class="loading-puppets">
+                    <p>لا توجد دمى متاحة حالياً</p>
+                </div>
+            `;
+            return;
+        }
+
+        puppetsSnapshot.forEach(doc => {
+            const puppet = doc.data();
+            const puppetCard = createPuppetCard(doc.id, puppet);
+            gallery.appendChild(puppetCard);
+        });
+
+    } catch (error) {
+        console.error('Error loading puppets:', error);
+        gallery.innerHTML = `
+            <div class="loading-puppets">
+                <p>حدث خطأ في تحميل الدمى. الرجاء المحاولة لاحقاً.</p>
+            </div>
+        `;
+    }
+}
+
+function createPuppetCard(puppetId, puppet) {
+    const card = document.createElement('div');
+    card.className = 'puppet-card';
+    card.dataset.puppetId = puppetId;
+
+    card.innerHTML = `
+        <div class="puppet-emoji">${puppet.emoji || '🎭'}</div>
+        <div class="puppet-name">${puppet.name}</div>
+        <div class="puppet-category">${getCategoryName(puppet.category)}</div>
+    `;
+
+    card.addEventListener('click', () => togglePuppetSelection(puppetId, card));
+
+    return card;
+}
+
+function togglePuppetSelection(puppetId, cardElement) {
+    const index = selectedPuppets.indexOf(puppetId);
+
+    if (index > -1) {
+        // Deselect
+        selectedPuppets.splice(index, 1);
+        cardElement.classList.remove('selected');
+        updatePuppetCards();
+    } else {
+        // Select (if limit not reached)
+        if (selectedPuppets.length < maxPuppets) {
+            selectedPuppets.push(puppetId);
+            cardElement.classList.add('selected');
+            updatePuppetCards();
+        } else {
+            alert(`يمكنك اختيار ${maxPuppets} دمية كحد أقصى`);
+        }
+    }
+
+    updateSelectedCount();
+}
+
+function updatePuppetCards() {
+    const allCards = document.querySelectorAll('.puppet-card');
+
+    allCards.forEach(card => {
+        if (selectedPuppets.length >= maxPuppets && !card.classList.contains('selected')) {
+            card.classList.add('disabled');
+        } else {
+            card.classList.remove('disabled');
+        }
+    });
+}
+
+function updateSelectedCount() {
+    const countElement = document.getElementById('selectedCount');
+    if (countElement) {
+        countElement.textContent = selectedPuppets.length;
+    }
+}
+
+function getCategoryName(category) {
+    const categories = {
+        'animals': 'حيوانات',
+        'family': 'عائلة',
+        'characters': 'شخصيات',
+        'objects': 'أشياء'
+    };
+    return categories[category] || category;
+}
+
+// ============================================
+// Form Submission
+// ============================================
+
+async function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!validateCurrentStep()) {
+        return;
+    }
+
+    // Show loading
+    loadingOverlay.style.display = 'flex';
+
+    try {
+        // Collect all form data
+        const formData = collectFormData();
+
+        // Get current user
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            throw new Error('يجب تسجيل الدخول أولاً');
+        }
+
+        // Save assessment data
+        const assessmentRef = await firebase.firestore()
+            .collection('assessments')
+            .add({
+                studentId: user.uid,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                ...formData
+            });
+
+        // Redirect to dialogue editor with assessment ID
+        window.location.href = `dialogue-editor.html?assessment=${assessmentRef.id}`;
+
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        loadingOverlay.style.display = 'none';
+        alert('حدث خطأ أثناء إرسال البيانات. الرجاء المحاولة مرة أخرى.');
+    }
+}
+
+function collectFormData() {
+    const formData = {
+        psychological: {
+            mood: getRadioValue('mood'),
+            confidence: parseInt(document.querySelector('[name="confidence"]').value),
+            fears: getCheckboxValues('fears'),
+            happiness: document.querySelector('[name="happiness"]').value
+        },
+        educational: {
+            grade: document.querySelector('[name="grade"]').value,
+            favoriteSubjects: getCheckboxValues('subjects'),
+            learningStyle: getRadioValue('learningStyle'),
+            scienceTopic: document.querySelector('[name="scienceTopic"]').value
+        },
+        behavioral: {
+            introvert: parseInt(document.querySelector('[name="introvert"]').value),
+            leadership: parseInt(document.querySelector('[name="leadership"]').value),
+            cooperation: parseInt(document.querySelector('[name="cooperation"]').value),
+            strengths: getCheckboxValues('strengths')
+        },
+        puppets: selectedPuppets,
+        settings: {
+            language: getRadioValue('language'),
+            length: getRadioValue('length'),
+            storyType: getRadioValue('storyType'),
+            title: document.querySelector('[name="title"]').value,
+            notes: document.querySelector('[name="notes"]').value
+        }
+    };
+
+    return formData;
+}
+
+function getRadioValue(name) {
+    const radio = document.querySelector(`[name="${name}"]:checked`);
+    return radio ? radio.value : '';
+}
+
+function getCheckboxValues(name) {
+    const checkboxes = document.querySelectorAll(`[name="${name}"]:checked`);
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+// ============================================
+// User Info
+// ============================================
+
+async function loadUserName() {
+    const user = firebase.auth().currentUser;
+    if (user) {
+        try {
+            const userDoc = await firebase.firestore()
+                .collection('users')
+                .doc(user.uid)
+                .get();
+
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                document.getElementById('userName').textContent = userData.name || 'الطالب';
+            }
+        } catch (error) {
+            console.error('Error loading user name:', error);
+        }
+    }
+}

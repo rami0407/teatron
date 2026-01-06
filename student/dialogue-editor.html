@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📝 محرر الحوار المخصص</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/dialogue-generator.css">
+    <style>
+        .editor-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .editor-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .editor-header h1 {
+            font-size: 2.2rem;
+            color: #6366f1;
+            margin-bottom: 0.5rem;
+        }
+
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .dialogue-preview {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .dialogue-title-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .dialogue-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .dialogue-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .dialogue-content {
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 1rem 0;
+        }
+
+        .dialogue-line {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: flex-start;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .speaker-avatar {
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+
+        .line-content {
+            flex: 1;
+        }
+
+        .speaker-name {
+            font-weight: 700;
+            color: #6366f1;
+            margin-bottom: 0.3rem;
+        }
+
+        .line-text {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            line-height: 1.6;
+            font-size: 1.05rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .editor-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .editor-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tts-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .voice-selector {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .voice-selector:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .playback-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .playback-controls .btn {
+            flex: 1;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .action-buttons .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .puppet-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .puppet-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+            border-radius: 12px;
+        }
+
+        .puppet-item-emoji {
+            font-size: 2.5rem;
+        }
+
+        .puppet-item-name {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .loading-generation {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading-generation .spinner {
+            margin: 0 auto 1.5rem;
+        }
+
+        @media (max-width: 968px) {
+            .editor-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">الطالب</strong></span>
+                <a href="dashboard.html" class="btn btn-outline btn-sm">العودة للوحة التحكم</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="editor-container">
+        <div class="editor-header">
+            <h1>📝 حوارك المخصص جاهز!</h1>
+            <p class="subtitle">يمكنك الاستماع إليه أو تعديله أو حفظه</p>
+        </div>
+
+        <div id="loadingGeneration" class="loading-generation">
+            <div class="spinner"></div>
+            <h3>جارٍ إنشاء حوارك المخصص...</h3>
+            <p>يرجى الانتظار قليلاً</p>
+        </div>
+
+        <div id="editorLayout" class="editor-layout" style="display: none;">
+            <!-- Dialogue Preview -->
+            <div class="dialogue-preview">
+                <div class="dialogue-title-section">
+                    <h2 class="dialogue-title" id="dialogueTitle">عنوان الحوار</h2>
+                    <div class="dialogue-meta">
+                        <span class="meta-item">🎭 <span id="puppetCount">1</span> دمية</span>
+                        <span class="meta-item">🌍 <span id="dialogueLanguage">العربية</span></span>
+                        <span class="meta-item">📏 <span id="dialogueLength">متوسط</span></span>
+                        <span class="meta-item">🎬 <span id="dialogueType">تعليمي</span></span>
+                    </div>
+                </div>
+
+                <div class="dialogue-content" id="dialogueContent">
+                    <!-- Dialogue lines will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="editor-sidebar">
+                <!-- Text-to-Speech Controls -->
+                <div class="editor-card" id="ttsCard" style="display: none;">
+                    <h3 class="card-title">🎙️ قراءة النص</h3>
+                    <div class="tts-controls">
+                        <select id="voiceSelector" class="voice-selector">
+                            <option value="">اختر الصوت...</option>
+                        </select>
+                        <div class="playback-controls">
+                            <button id="playBtn" class="btn btn-primary">▶️ تشغيل</button>
+                            <button id="pauseBtn" class="btn btn-outline" disabled>⏸️ إيقاف</button>
+                            <button id="stopBtn" class="btn btn-outline" disabled>⏹️ إنهاء</button>
+                        </div>
+                        <div id="ttsStatus" style="text-align: center; color: #64748b; font-size: 0.9rem;">
+                            جاهز للقراءة
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Puppets Used -->
+                <div class="editor-card">
+                    <h3 class="card-title">🎭 الدمى المستخدمة</h3>
+                    <div class="puppet-info" id="puppetInfo">
+                        <!-- Puppet info will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="editor-card">
+                    <h3 class="card-title">⚙️ الإجراءات</h3>
+                    <div class="action-buttons">
+                        <button id="saveBtn" class="btn btn-primary">💾 حفظ الحوار</button>
+                        <button id="exportTxtBtn" class="btn btn-outline">📄 تصدير TXT</button>
+                        <button id="newDialogueBtn" class="btn btn-outline">✨ إنشاء حوار جديد</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/dialogue-engine.js"></script>
+    <script src="../js/dialogue-editor.js"></script>
+</body>
+
+</html>
