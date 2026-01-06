@@ -49,6 +49,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadUserName();
     }
 
+    // Setup back button
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.href = isGuestMode ? '../index.html' : 'dashboard.html';
+        backBtn.textContent = isGuestMode ? 'العودة للصفحة الرئيسية' : 'العودة للوحة التحكم';
+    }
+
     // Load assessment and generate dialogue
     await loadAssessmentAndGenerate(assessmentId);
 
