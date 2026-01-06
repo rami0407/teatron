@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 دخول لوحة الإدارة - مسرح الدمى STEM</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/auth.css">
+
+    <style>
+        .admin-login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+
+        .admin-login-box {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .admin-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .admin-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .quick-access {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .quick-access p {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .quick-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #6366f1;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .quick-link:hover {
+            background: #6366f1;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-login-container">
+        <div class="admin-login-box">
+            <div class="admin-header">
+                <div class="admin-icon">🔐</div>
+                <h1 class="admin-title">لوحة الإدارة</h1>
+                <p class="admin-subtitle">تسجيل دخول المدير</p>
+            </div>
+
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <input type="email" id="email" required placeholder="admin@example.com" value="rami0407@gmail.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">كلمة المرور</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                    🚀 دخول لوحة الإدارة
+                </button>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+            </form>
+
+            <div class="quick-access">
+                <p><strong>الوصول السريع بعد تسجيل الدخول:</strong></p>
+                <div class="quick-links">
+                    <a href="dashboard.html" class="quick-link">🏠 الرئيسية</a>
+                    <a href="users.html" class="quick-link">👥 المستخدمين</a>
+                    <a href="puppet-management.html" class="quick-link">🎭 الدمى</a>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <a href="../index.html" style="color: #64748b; text-decoration: none; font-size: 0.9rem;">
+                    ← العودة للصفحة الرئيسية
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>جارٍ تسجيل الدخول...</p>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+
+    <script>
+        const form = document.getElementById('adminLoginForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const errorMessage = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            loadingOverlay.style.display = 'flex';
+            errorMessage.style.display = 'none';
+
+            try {
+                // Sign in with Firebase
+                const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // Check if user is admin
+                const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+
+                if (!userDoc.exists) {
+                    throw new Error('المستخدم غير موجود في قاعدة البيانات');
+                }
+
+                const userData = userDoc.data();
+
+                if (userData.role !== 'admin') {
+                    // Not an admin
+                    await firebase.auth().signOut();
+                    throw new Error('ليس لديك صلاحيات الوصول لهذه الصفحة. يجب أن تكون مديراً.');
+                }
+
+                // Success - redirect to admin dashboard
+                window.location.href = 'dashboard.html';
+
+            } catch (error) {
+                console.error('Login error:', error);
+                loadingOverlay.style.display = 'none';
+                errorMessage.style.display = 'block';
+
+                if (error.code === 'auth/user-not-found') {
+                    errorMessage.textContent = 'البريد الإلكتروني غير مسجل';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMessage.textContent = 'كلمة المرور غير صحيحة';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage.textContent = 'صيغة البريد الإلكتروني غير صحيحة';
+                } else {
+                    errorMessage.textContent = error.message;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
