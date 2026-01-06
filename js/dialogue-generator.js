@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
         loadUserName();
     }
 
+    // Setup back button
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.href = isGuestMode ? '../index.html' : 'dashboard.html';
+        backBtn.textContent = isGuestMode ? 'العودة للصفحة الرئيسية' : 'العودة للوحة التحكم';
+    }
+
     initializeSliders();
     loadPuppets();
     updateNavigation();
