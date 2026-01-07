@@ -6,7 +6,11 @@ async function checkAuth(requiredRole = null) {
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 // Not logged in
-                window.location.href = '/auth/login.html';
+                // Assuming we are in a subdirectory like /student/ or /admin/
+                // If we are in root, this might need adjustment, but for dashboards it's safer
+                const pathPrefix = window.location.pathname.includes('/') && window.location.pathname.split('/').length > 2 ? '../' : './';
+
+                window.location.href = pathPrefix + 'auth/login.html';
                 reject('Not authenticated');
                 return;
             }
@@ -15,7 +19,8 @@ async function checkAuth(requiredRole = null) {
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
                     if (!userDoc.exists) {
-                        window.location.href = '/auth/login.html';
+                        const pathPrefix = window.location.pathname.includes('/') && window.location.pathname.split('/').length > 2 ? '../' : './';
+                        window.location.href = pathPrefix + 'auth/login.html';
                         reject('User data not found');
                         return;
                     }
@@ -24,7 +29,8 @@ async function checkAuth(requiredRole = null) {
 
                     // Check role
                     if (userData.role !== requiredRole) {
-                        window.location.href = '/index.html';
+                        const pathPrefix = window.location.pathname.includes('/') && window.location.pathname.split('/').length > 2 ? '../' : './';
+                        window.location.href = pathPrefix + 'index.html';
                         reject('Unauthorized role');
                         return;
                     }
@@ -33,7 +39,8 @@ async function checkAuth(requiredRole = null) {
                     if (userData.role === 'teacher' && !userData.approved) {
                         alert('حسابك قيد المراجعة من قبل الإدارة');
                         await auth.signOut();
-                        window.location.href = '/auth/login.html';
+                        const pathPrefix = window.location.pathname.includes('/') && window.location.pathname.split('/').length > 2 ? '../' : './';
+                        window.location.href = pathPrefix + 'auth/login.html';
                         reject('Teacher not approved');
                         return;
                     }
@@ -41,7 +48,8 @@ async function checkAuth(requiredRole = null) {
                     resolve({ user, userData });
                 } catch (error) {
                     console.error('Error checking role:', error);
-                    window.location.href = '/auth/login.html';
+                    const pathPrefix = window.location.pathname.includes('/') && window.location.pathname.split('/').length > 2 ? '../' : './';
+                    window.location.href = pathPrefix + 'auth/login.html';
                     reject(error);
                 }
             } else {
@@ -55,7 +63,8 @@ async function checkAuth(requiredRole = null) {
 async function logout() {
     try {
         await auth.signOut();
-        window.location.href = '/index.html';
+        const pathPrefix = window.location.pathname.includes('/') && window.location.pathname.split('/').length > 2 ? '../' : './';
+        window.location.href = pathPrefix + 'index.html';
     } catch (error) {
         console.error('Logout error:', error);
         alert('حدث خطأ أثناء تسجيل الخروج');
