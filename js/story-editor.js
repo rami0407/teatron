@@ -1,6 +1,7 @@
 // Story Editor Logic (Advanced AI Version)
 
 let currentUser = null;
+let currentStoryId = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -10,13 +11,58 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         setupEventListeners();
 
-        // Auto-focus on title
-        document.getElementById('storyTitle').focus();
+        // Check for 'id' parameter for Edit Mode
+        const urlParams = new URLSearchParams(window.location.search);
+        currentStoryId = urlParams.get('id');
+
+        if (currentStoryId) {
+            await loadStoryForEdit(currentStoryId);
+        } else {
+            // Auto-focus on title only if new story
+            document.getElementById('storyTitle').focus();
+        }
 
     } catch (error) {
         console.error('Init error:', error);
     }
 });
+
+async function loadStoryForEdit(id) {
+    const titleInput = document.getElementById('storyTitle');
+    const contentInput = document.getElementById('storyContent');
+    const saveBtn = document.getElementById('saveBtn');
+
+    try {
+        titleInput.value = 'جاري التحميل...';
+        contentInput.disabled = true;
+
+        const doc = await db.collection('dialogues').doc(id).get();
+        if (!doc.exists) {
+            alert('عذراً، هذه القصة غير موجودة!');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        const data = doc.data();
+        if (data.studentId !== currentUser.uid) {
+            alert('ليس لديك صلاحية لتعديل هذه القصة!');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        titleInput.value = data.title;
+        contentInput.value = data.content || '';
+        contentInput.disabled = false;
+        saveBtn.textContent = 'تحديث القصة 🔄';
+
+        // Trigger word count update
+        contentInput.dispatchEvent(new Event('input'));
+
+    } catch (e) {
+        console.error(e);
+        alert('حدث خطأ أثناء تحميل القصة.');
+    }
+}
 
 function setupEventListeners() {
     // Form Submit
@@ -53,42 +99,51 @@ async function handleSaveStory(e) {
 
     try {
         saveBtn.disabled = true;
-        saveBtn.textContent = 'جاري التحقق...';
 
-        // Check Story Limit (Max 10 per student)
-        const snapshot = await db.collection('dialogues')
-            .where('studentId', '==', currentUser.uid)
-            .get();
+        // Check Limit ONLY if Creating New (not Updating)
+        if (!currentStoryId) {
+            const snapshot = await db.collection('dialogues')
+                .where('studentId', '==', currentUser.uid)
+                .get();
 
-        if (snapshot.size >= 10) {
-            alert('⚠️ عذراً، لقد وصلت للحد الأقصى المسموح (10 قصص).\nيرجى حذف قصة قديمة لتتمكن من حفظ قصة جديدة.');
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'حفظ القصة 💾';
-            return;
+            if (snapshot.size >= 10) {
+                alert('⚠️ عذراً، لقد وصلت للحد الأقصى المسموح (10 قصص).\nيرجى حذف قصة قديمة لتتمكن من حفظ قصة جديدة.');
+                saveBtn.disabled = false;
+                return;
+            }
         }
 
-        saveBtn.textContent = 'جاري الحفظ...';
+        saveBtn.textContent = currentStoryId ? 'جاري التحديث...' : 'جاري الحفظ...';
 
-        const newDoc = {
+        const storyData = {
             title: title,
-            studentId: currentUser.uid,
-            studentName: currentUser.displayName || 'طالب',
             content: content,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             type: 'free-text',
-            status: 'completed'
+            status: 'completed',
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        await db.collection('dialogues').add(newDoc);
+        if (currentStoryId) {
+            // Update Existing
+            await db.collection('dialogues').doc(currentStoryId).update(storyData);
+            alert('تم تحديث القصة بنجاح! ✅');
+        } else {
+            // Create New
+            storyData.studentId = currentUser.uid;
+            storyData.studentName = currentUser.displayName || 'طالب';
+            storyData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
 
-        alert('تم حفظ قصتك بنجاح! 🌟\nيمكنك الآن رؤيتها في صفحتك الرئيسية.');
+            await db.collection('dialogues').add(storyData);
+            alert('تم حفظ قصتك بنجاح! 🌟');
+        }
+
         window.location.href = 'dashboard.html';
 
     } catch (error) {
         console.error('Save error:', error);
         alert('حدث خطأ أثناء الحفظ: ' + error.message);
         saveBtn.disabled = false;
-        saveBtn.textContent = 'حفظ القصة 💾';
+        saveBtn.textContent = currentStoryId ? 'تحديث القصة 🔄' : 'حفظ القصة 💾';
     }
 }
 
