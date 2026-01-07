@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - المعلم</title>
+    <title>بوابة المعلم - صندوق الوارد</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,69 @@
     <!-- Styles -->
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        .inbox-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-right: 4px solid #4cc9f0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .inbox-card:hover {
+            transform: translateX(-5px);
+            background: #fdfdfd;
+        }
+
+        .inbox-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .student-name-tag {
+            background: #e3f2fd;
+            color: #0d47a1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .time-tag {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .folder-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .folder-card {
+            background: #fff3e0;
+            border: 1px solid #ffe0b2;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .folder-card h3 {
+            margin: 10px 0 5px;
+            color: #e65100;
+        }
+
+        .folder-icon {
+            font-size: 2.5rem;
+        }
+    </style>
 </head>
 
 <body>
@@ -25,6 +88,9 @@
                 <span>بوابة المعلم</span>
             </div>
             <div class="nav-right">
+                <div id="notificationBadge"
+                    style="display:none; background:red; color:white; border-radius:50%; padding:2px 8px; font-size:0.8rem;">
+                    0</div>
                 <span class="user-greeting">مرحباً, <strong id="userName">المعلم</strong></span>
                 <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
             </div>
@@ -38,14 +104,14 @@
             <ul class="sidebar-menu">
                 <li class="menu-item active">
                     <a href="dashboard.html">
-                        <span class="menu-icon">🏠</span>
-                        <span>الرئيسية</span>
+                        <span class="menu-icon">📥</span>
+                        <span>صندوق الوارد</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a href="#" onclick="alert('قريباً')">
                         <span class="menu-icon">👥</span>
-                        <span>طلابي</span>
+                        <span>إدارة الطلاب</span>
                     </a>
                 </li>
             </ul>
@@ -54,22 +120,29 @@
         <!-- Main Dashboard -->
         <main class="dashboard-main">
             <div class="dashboard-header">
-                <h1>لوحة تحكم المعلم</h1>
+                <h1>📬 البريد الوارد من الطلاب</h1>
+                <p class="text-muted">القصص والمواضيع المرسلة للمراجعة</p>
             </div>
 
-            <div class="welcome-box"
-                style="background: white; padding: 40px; border-radius: 12px; text-align: center; border: 1px solid #eee;">
-                <div style="font-size: 3rem; margin-bottom: 20px;">🍎</div>
-                <h3>أهلاً بك في منصة مسرح الدمى</h3>
-                <p>هذه الصفحة قيد الإنشاء حالياً. قريباً ستتمكن من إدارة طلابك ومتابعة تقدمهم من هنا.</p>
+            <!-- Folders Layout (Optional Idea: Group by Student) -->
+            <!-- <div class="folder-view">
+                 Dynamic Folders (Libraries) 
+            </div> -->
+
+            <div id="inboxList">
+                <div class="loading-state" style="text-align:center; padding:40px;">
+                    <div class="spinner" style="margin:0 auto;"></div>
+                    <p>جاري مزامنة الرسائل...</p>
+                </div>
             </div>
 
         </main>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-        <div class="spinner"></div>
+    <!-- Notification Toast -->
+    <div id="toast"
+        style="position:fixed; bottom:20px; left:20px; background:#333; color:white; padding:15px; border-radius:8px; display:none; z-index:9999;">
+        🔔 لديك رسالة جديدة!
     </div>
 
     <!-- Firebase -->
@@ -81,22 +154,105 @@
     <script src="../js/firebase-config.js"></script>
     <script src="../js/auth.js"></script>
     <script>
-        // Teacher Dashboard Logic
+        let currentUser = null;
+        const processedDocIds = new Set(); // Track notification triggers
+
+        // Init
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const authData = await checkAuth('teacher');
-                const userData = authData.userData;
+                currentUser = authData.user;
+                document.getElementById('userName').textContent = authData.userData.name;
 
-                document.getElementById('userName').textContent = userData.name || 'المعلم';
+                setupRealtimeListener();
 
             } catch (error) {
-                console.error('Auth User:', error);
+                console.error(error);
             }
         });
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            logout();
-        });
+        // Realtime Listener
+        function setupRealtimeListener() {
+            const list = document.getElementById('inboxList');
+
+            db.collection('dialogues')
+                .where('submittedTo', '==', currentUser.uid)
+                .orderBy('submittedAt', 'desc')
+                .onSnapshot(snapshot => {
+                    if (snapshot.empty) {
+                        list.innerHTML = `
+                            <div style="text-align:center; padding:50px; background:#fff; border-radius:12px;">
+                                <div style="font-size:3rem;">📭</div>
+                                <h3>صندوق الوارد فارغ</h3>
+                                <p>لم يقم أي طالب بإرسال قصص بعد.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Render List
+                    list.innerHTML = snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        const date = data.submittedAt ? data.submittedAt.toDate().toLocaleString('ar-EG') : 'الآن';
+
+                        // Check for new notification
+                        if (!processedDocIds.has(doc.id)) {
+                            // Only notify if timestamp is very recent (avoid spam on reload)
+                            const now = new Date();
+                            const docTime = data.submittedAt ? data.submittedAt.toDate() : new Date();
+                            if ((now - docTime) < 10000) { // 10 seconds threshold
+                                showNotification(`رسالة جديدة من ${data.studentName}`);
+                            }
+                            processedDocIds.add(doc.id);
+                        }
+
+                        return `
+                             <div class="inbox-card" onclick="viewStory('${doc.id}')">
+                                <div class="inbox-header">
+                                    <span class="student-name-tag">👤 ${data.studentName}</span>
+                                    <span class="time-tag">${date}</span>
+                                </div>
+                                <h3 style="margin:0;">${data.title}</h3>
+                                <p style="color:#666; margin:5px 0 0; font-size:0.9rem;">
+                                    ${data.content.substring(0, 100)}...
+                                </p>
+                            </div>
+                        `;
+                    }).join('');
+
+                }, error => {
+                    console.error("Inbox Error:", error);
+                    list.innerHTML = '<p class="error-text">حدث خطأ في تحميل الرسائل (قد يحتاج لفهرس جديد).</p>';
+                });
+        }
+
+        function showNotification(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = "🔔 " + msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
+
+            // Play sound? (Optional)
+        }
+
+        function viewStory(id) {
+            // For now, easy alert. In future: Modal or Detail Page.
+            db.collection('dialogues').doc(id).get().then(doc => {
+                const data = doc.data();
+                const w = window.open("", "_blank");
+                w.document.write(`
+                    <html dir="rtl"><body style="font-family:sans-serif; padding:40px; max-width:800px; margin:0 auto;">
+                        <h1>${data.title}</h1>
+                        <p><strong>الطالب:</strong> ${data.studentName}</p>
+                        <hr>
+                        <div style="white-space: pre-wrap; line-height:1.6; font-size:1.2rem;">${data.content}</div>
+                        <br><button onclick="window.close()" style="padding:10px 20px; cursor:pointer;">إغلاق</button>
+                    </body></html>
+                 `);
+            });
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => logout());
     </script>
 </body>
 
