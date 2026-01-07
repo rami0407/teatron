@@ -346,6 +346,107 @@
                 opacity: 1;
             }
         }
+
+        /* AI Modal Styles */
+        .ai-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .ai-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .ai-modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .ai-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .ai-icon-pulse {
+            font-size: 2rem;
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .suggestion-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-right: 4px solid var(--secondary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suggestion-text del {
+            color: #ff6b6b;
+            background: #ffe3e3;
+            padding: 0 4px;
+        }
+
+        .suggestion-text ins {
+            color: #20c997;
+            background: #e6fcf5;
+            padding: 0 4px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .ai-actions {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-ai:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -370,6 +471,7 @@
             </div>
 
             <form id="storyForm">
+                <!-- ... unchanged parts ... -->
                 <div class="input-group">
                     <label>عنوان القصة</label>
                     <input type="text" id="storyTitle" placeholder="مثال: مغامرة في الغابة..." required>
@@ -378,7 +480,6 @@
                 <div class="input-group">
                     <label>اختر أبطال القصة (الدمى)</label>
                     <div id="charactersList" class="characters-selection">
-                        <!-- Populated by JS -->
                         <div class="loading-state">
                             <div class="spinner"></div>
                             <p>جاري تحميل الدمى...</p>
@@ -389,7 +490,7 @@
                 <div class="input-group">
                     <label>الحوار المسرحي</label>
                     <div id="dialogueContainer" class="dialogue-lines">
-                        <!-- Dialogue lines will be added here -->
+                        <!-- Dialogue lines -->
                     </div>
 
                     <button type="button" class="add-line-btn" id="addLineBtn">
@@ -400,11 +501,41 @@
                 <div class="save-actions">
                     <button type="button" class="btn btn-outline"
                         onclick="window.location.href='dashboard.html'">إلغاء</button>
+                    <!-- AI Button -->
+                    <button type="button" class="btn btn-primary btn-ai" onclick="analyzeStoryAI()">✨ تحسين القصة
+                        بالذكاء الاصطناعي</button>
                     <button type="submit" class="btn btn-primary" id="saveBtn">حفظ القصة 💾</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- AI Suggestions Modal -->
+    <div id="aiModal" class="ai-modal">
+        <div class="ai-modal-content">
+            <div class="ai-modal-header">
+                <div class="ai-icon-pulse">🤖</div>
+                <div>
+                    <h3>اقتراحات المساعد الذكي</h3>
+                    <p class="text-muted">إليك بعض الأفكار لجعل قصتك أروع!</p>
+                </div>
+            </div>
+
+            <div id="aiSuggestionsList">
+                <!-- Suggestions injected here -->
+                <div class="suggestion-item">
+                    <div class="suggestion-text">جاري تحليل قصتك... ⏳</div>
+                </div>
+            </div>
+
+            <div class="ai-actions">
+                <button type="button" class="btn btn-outline" onclick="closeAIModal()">إغلاق</button>
+                <button type="button" class="btn btn-primary" onclick="applyAISuggestions()">✅ تطبيق التعديلات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Creative Assistant Sidebar (unchanged) -->
 
     <!-- Creative Assistant Sidebar -->
     <div id="creativeSidebar" class="creative-sidebar">

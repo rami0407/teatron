@@ -283,3 +283,150 @@ function generateStoryIdea() {
 window.toggleAssistant = toggleAssistant;
 window.insertText = insertText;
 window.generateStoryIdea = generateStoryIdea;
+
+// ==========================================
+// AI Enhancer Logic (Simulation)
+// ==========================================
+
+const EMOJI_MAP = {
+    'مرحبا': '👋', 'اهلا': '👋', 'سلام': '✌️',
+    'شكرا': '🙏', 'عفوا': '🌸',
+    'حب': '❤️', 'صداقة': '🤝', 'سعيد': '😊', 'فرح': '🎉',
+    'حزين': '😢', 'غاضب': '😡', 'خائف': '😨',
+    'فكرة': '💡', 'سؤال': '❓', 'لماذا': '🤔',
+    'نعم': '✅', 'لا': '❌', 'واو': '🤩',
+    'شمس': '☀️', 'قمر': '🌙', 'نجمة': '⭐',
+    'لعب': '🧸', 'ركض': '🏃', 'اكل': '🍎',
+    'صوت': '🔊', 'سر': '🤫'
+};
+
+const WORD_IMPROVEMENTS = {
+    'قال': ['أضاف', 'أجاب', 'عقب', 'تساءل'],
+    'ذهب': ['انطلق', 'توجه', 'سار'],
+    'رأى': ['شاهد', 'لمح', 'لاحظ'],
+    'جميل': ['رائع', 'بديع', 'ساحر'],
+    'كبير': ['عملاق', 'ضخم', 'هائل']
+};
+
+let proposedChanges = [];
+
+function analyzeStoryAI() {
+    const lines = document.querySelectorAll('.dialogue-line textarea');
+    const modal = document.getElementById('aiModal');
+    const list = document.getElementById('aiSuggestionsList');
+
+    proposedChanges = []; // Reset
+    list.innerHTML = '';
+
+    if (lines.length === 0) {
+        alert('اكتب شيئاً أولاً ليقوم الذكاء الاصطناعي بتحليله!');
+        return;
+    }
+
+    modal.classList.add('active');
+
+    // Simulate thinking time
+    setTimeout(() => {
+        let suggestionsHTML = '';
+        let changeCount = 0;
+
+        lines.forEach((textarea, index) => {
+            let originalText = textarea.value.trim();
+            if (!originalText) return;
+
+            let newText = originalText;
+            let changesInLine = [];
+
+            // 1. Emoji Suggestions
+            Object.keys(EMOJI_MAP).forEach(keyword => {
+                if (newText.includes(keyword) && !newText.includes(EMOJI_MAP[keyword])) {
+                    // Don't replace, just append emoji if appropriate or hint
+                    // For simulation, let's append emoji to the word
+                    // Using regex to replace word with word+emoji
+                    const regex = new RegExp(`(${keyword})`, 'gi');
+                    // Avoid double emojis if already there
+                    newText = newText.replace(regex, `$1 ${EMOJI_MAP[keyword]}`);
+                    changesInLine.push(`إضافة تعبيرات: ${EMOJI_MAP[keyword]}`);
+                }
+            });
+
+            // 2. Word Improvements (Simple replacements)
+            Object.keys(WORD_IMPROVEMENTS).forEach(word => {
+                if (newText.includes(word)) {
+                    // Randomly pick an improvement 50% chance
+                    if (Math.random() > 0.5) {
+                        const alternatives = WORD_IMPROVEMENTS[word];
+                        const betterWord = alternatives[Math.floor(Math.random() * alternatives.length)];
+                        newText = newText.replace(word, betterWord);
+                        changesInLine.push(`تحسين مفردات: "${word}" ⬅️ "${betterWord}"`);
+                    }
+                }
+            });
+
+            // 3. Punctuation
+            if (!/[.!?،]$/.test(newText)) {
+                newText += '.';
+                changesInLine.push('إضافة علامات ترقيم.');
+            }
+
+            if (newText !== originalText) {
+                changeCount++;
+                proposedChanges.push({
+                    index: index,
+                    newText: newText
+                });
+
+                suggestionsHTML += `
+                    <div class="suggestion-item">
+                        <div>
+                            <strong>السطر ${index + 1}:</strong>
+                            <div class="suggestion-text">
+                                <del>${originalText}</del> <br> ⬇️ <br> <ins>${newText}</ins>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #666;">
+                            ${changesInLine.join('، ')}
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        if (changeCount === 0) {
+            list.innerHTML = `
+                <div style="text-align:center; padding: 20px;">
+                    <div style="font-size: 3rem;">✨</div>
+                    <h3>قصتك ممتازة!</h3>
+                    <p>لم أجد أي اقتراحات للتحسين. أحسنت!</p>
+                </div>
+            `;
+        } else {
+            list.innerHTML = suggestionsHTML;
+        }
+
+    }, 1500); // 1.5s Fake delay
+}
+
+function closeAIModal() {
+    document.getElementById('aiModal').classList.remove('active');
+}
+
+function applyAISuggestions() {
+    const lines = document.querySelectorAll('.dialogue-line textarea');
+
+    proposedChanges.forEach(change => {
+        if (lines[change.index]) {
+            lines[change.index].value = change.newText;
+            // Highlight change
+            lines[change.index].style.backgroundColor = '#e6fcf5';
+            setTimeout(() => lines[change.index].style.backgroundColor = '', 1000);
+        }
+    });
+
+    closeAIModal();
+    alert('تم تطبيق تحسينات الذكاء الاصطناعي بنجاح! 🚀');
+}
+
+window.analyzeStoryAI = analyzeStoryAI;
+window.closeAIModal = closeAIModal;
+window.applyAISuggestions = applyAISuggestions;
