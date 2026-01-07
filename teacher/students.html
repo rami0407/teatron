@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الطلاب - مسرح الدمى</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .students-table th,
+        .students-table td {
+            padding: 15px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        .students-table th {
+            background: #f8f9fa;
+            color: #555;
+            font-weight: 700;
+        }
+
+        .coupon-badge {
+            background: #fff3cd;
+            color: #856404;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎓</span>
+                <span>بوابة المعلم</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">المعلم</strong></span>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="dashboard.html">
+                        <span class="menu-icon">📥</span>
+                        <span>صندوق الوارد</span>
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="students.html">
+                        <span class="menu-icon">👥</span>
+                        <span>إدارة الطلاب</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <h1>👥 قائمة الطلاب</h1>
+                <p class="text-muted">متابعة نشاط الطلاب ورصيد الكوبونات</p>
+            </div>
+
+            <div class="table-responsive">
+                <table class="students-table">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>رصيد الكوبونات 🎟️</th>
+                            <th>تاريخ الانضمام</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsList">
+                        <tr>
+                            <td colspan="4" style="text-align:center; padding:30px;">
+                                <div class="spinner" style="margin:0 auto;"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const authData = await checkAuth('teacher');
+                document.getElementById('userName').textContent = authData.userData.name;
+
+                loadStudents();
+
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+        async function loadStudents() {
+            const list = document.getElementById('studentsList');
+
+            try {
+                const snapshot = await db.collection('users')
+                    .where('role', '==', 'student')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                if (snapshot.empty) {
+                    list.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا يوجد طلاب مسجلين بعد.</td></tr>';
+                    return;
+                }
+
+                list.innerHTML = snapshot.docs.map(doc => {
+                    const student = doc.data();
+                    const date = student.createdAt ? new Date(student.createdAt.toMillis()).toLocaleDateString('ar-EG') : '-';
+
+                    return `
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="background:#eee; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+                                    <strong>${student.name}</strong>
+                                </div>
+                            </td>
+                            <td>${student.email}</td>
+                            <td>
+                                <span class="coupon-badge">
+                                    ${student.points || 0} 🎟️
+                                </span>
+                            </td>
+                            <td>${date}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading students:', error);
+
+                // Fallback for Index error
+                if (error.message.includes('index')) {
+                    const snapshot = await db.collection('users').where('role', '==', 'student').get();
+                    // Client side sort
+                    const students = snapshot.docs.map(d => d.data()).sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+
+                    list.innerHTML = students.map(student => {
+                        const date = student.createdAt ? new Date(student.createdAt.toMillis()).toLocaleDateString('ar-EG') : '-';
+                        return `
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="background:#eee; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+                                    <strong>${student.name}</strong>
+                                </div>
+                            </td>
+                            <td>${student.email}</td>
+                            <td><span class="coupon-badge">${student.points || 0} 🎟️</span></td>
+                            <td>${date}</td>
+                        </tr>`;
+                    }).join('');
+                } else {
+                    list.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center;">حدث خطأ في تحميل البيانات</td></tr>';
+                }
+            }
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => logout());
+    </script>
+</body>
+
+</html>

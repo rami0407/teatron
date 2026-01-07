@@ -109,7 +109,7 @@
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="#" onclick="alert('قريباً')">
+                    <a href="students.html">
                         <span class="menu-icon">👥</span>
                         <span>إدارة الطلاب</span>
                     </a>
@@ -293,10 +293,44 @@
                             <div class="content">
                                 ${contentHtml}
                             </div>
-                            <div style="text-align: center;">
-                                <button onclick="window.close()" class="btn">إغلاق</button>
+                            <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
+                                <button onclick="giveCoupon('${data.studentId}', '${id}')" class="btn btn-reward" id="rewardBtn">🎁 منح كوبون مكافأة</button>
+                                <button onclick="window.close()" class="btn btn-outline">إغلاق</button>
                             </div>
                         </div>
+
+                        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script>
+                            async function giveCoupon(studentId, storyId) {
+                                if(!confirm('هل أنت متأكد من منح الطالب كوبون مكافأة على هذه القصة؟ 🎟️')) return;
+
+                                const btn = document.getElementById('rewardBtn');
+                                btn.disabled = true;
+                                btn.innerText = 'جاري الإرسال...';
+
+                                try {
+                                    // 1. Increment Student Points
+                                    const studentRef = db.collection('users').doc(studentId);
+                                    await studentRef.update({
+                                        points: firebase.firestore.FieldValue.increment(1)
+                                    });
+
+                                    // 2. Mark Story as Rewarded (Optional, to avoid spamming? User allowed multiples, so maybe just toast)
+                                    // await db.collection('dialogues').doc(storyId).update({ rewarded: true });
+
+                                    alert('تم منح الكوبون بنجاح! 🌟');
+                                    btn.innerText = '✅ تم المنح';
+
+                                } catch (error) {
+                                    console.error(error);
+                                    alert('حدث خطأ: ' + error.message);
+                                    btn.disabled = false;
+                                    btn.innerText = '🎁 منح كوبون مكافأة';
+                                }
+                            }
+                        <\/script>
                     </body></html>
                  `);
             });
