@@ -1,31 +1,35 @@
 // Admin Users Management
 // Display and manage all system users
 
-let db, auth;
+// NOTE: db and auth are initialized in firebase-config.js
+// We assume firebase-config.js is loaded before this script
+
 let allUsers = [];
 let filteredUsers = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-    db = firebase.firestore();
-    auth = firebase.auth();
-
-    // Check if user is admin
-    auth.onAuthStateChanged(async (user) => {
+    // We access the global firebase auth object directly to be safe
+    firebase.auth().onAuthStateChanged(async (user) => {
         if (!user) {
             window.location.href = '../auth/login.html';
             return;
         }
 
         try {
-            const userDoc = await db.collection('users').doc(user.uid).get();
+            // Use global db object from firebase-config.js
+            const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
             if (!userDoc.exists || userDoc.data().role !== 'admin') {
                 alert('ليس لديك صلاحيات الوصول لهذه الصفحة');
                 window.location.href = '../index.html';
                 return;
             }
 
-            document.getElementById('userName').textContent = userDoc.data().name || 'المدير';
+            const userNameEl = document.getElementById('userName');
+            if (userNameEl) {
+                userNameEl.textContent = userDoc.data().name || 'المدير';
+            }
+
             await loadUsers();
         } catch (error) {
             console.error('Error checking permissions:', error);
@@ -33,16 +37,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Event Listeners
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-    document.getElementById('searchInput').addEventListener('input', filterUsers);
-    document.getElementById('roleFilter').addEventListener('change', filterUsers);
-    document.getElementById('exportBtn').addEventListener('click', exportToExcel);
-
-    // Modal close
-    document.querySelector('.modal-close').addEventListener('click', () => {
-        document.getElementById('userDetailsModal').style.display = 'none';
-    });
+    setupEventListeners();
 });
+
+function setupEventListeners() {
+    // Logout
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+
+    // Search
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', filterUsers);
+    }
+
+    // Filter
+    const roleFilter = document.getElementById('roleFilter');
+    if (roleFilter) {
+        roleFilter.addEventListener('change', filterUsers);
+    }
+
+    // Export
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportToExcel);
+    }
+
+    // Modal Close Buttons
+    document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const modal = e.target.closest('.modal');
+            if (modal) modal.style.display = 'none';
+        });
+    });
+}
 
 // ============================================
 // Load All Users
@@ -50,14 +80,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadUsers() {
     try {
-        const usersSnapshot = await db.collection('users').get();
+        const usersSnapshot = await firebase.firestore().collection('users').get();
 
         allUsers = usersSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
 
-        // Sort by name in JavaScript
+        // Sort by name
         allUsers.sort((a, b) => {
             const nameA = (a.name || '').toLowerCase();
             const nameB = (b.name || '').toLowerCase();
@@ -70,9 +100,12 @@ async function loadUsers() {
         displayUsers(filteredUsers);
     } catch (error) {
         console.error('Error loading users:', error);
-        document.getElementById('usersTableBody').innerHTML = `
-            <tr><td colspan="6" class="error-state">حدث خطأ في تحميل المستخدمين</td></tr>
-        `;
+        const tbody = document.getElementById('usersTableBody');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr><td colspan="6" class="error-state">حدث خطأ في تحميل المستخدمين: ${error.message}</td></tr>
+            `;
+        }
     }
 }
 
@@ -85,10 +118,15 @@ function updateStats() {
     const teachers = allUsers.filter(u => u.role === 'teacher').length;
     const admins = allUsers.filter(u => u.role === 'admin').length;
 
-    document.getElementById('totalUsers').textContent = allUsers.length;
-    document.getElementById('studentCount').textContent = students;
-    document.getElementById('teacherCount').textContent = teachers;
-    document.getElementById('adminCount').textContent = admins;
+    const setContent = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+
+    setContent('totalUsers', allUsers.length);
+    setContent('studentCount', students);
+    setContent('teacherCount', teachers);
+    setContent('adminCount', admins);
 }
 
 // ============================================
@@ -97,6 +135,7 @@ function updateStats() {
 
 function displayUsers(users) {
     const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
 
     if (users.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="empty-state">لا توجد نتائج</td></tr>';
@@ -104,7 +143,7 @@ function displayUsers(users) {
     }
 
     tbody.innerHTML = users.map(user => `
-        <tr>
+        <tr id="row-${user.id}">
             <td>
                 <div class="user-cell">
                     <div class="user-avatar">${getUserInitial(user.name)}</div>
@@ -119,9 +158,11 @@ function displayUsers(users) {
             <td>${formatDate(user.createdAt)}</td>
             <td><span class="status-badge status-active">نشط</span></td>
             <td>
-                <button class="btn-icon" onclick="viewUserDetails('${user.id}')" title="عرض التفاصيل">
-                    👁️
-                </button>
+                <div class="action-buttons">
+                    <button class="btn-icon" onclick="viewUserDetails('${user.id}')" title="عرض التفاصيل">👁️</button>
+                    <button class="btn-icon" onclick="openEditUserModal('${user.id}')" title="تعديل المستخدم">✏️</button>
+                    <button class="btn-icon btn-delete" onclick="deleteUser('${user.id}')" title="حذف المستخدم">🗑️</button>
+                </div>
             </td>
         </tr>
     `).join('');
@@ -132,15 +173,18 @@ function displayUsers(users) {
 // ============================================
 
 function filterUsers() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const roleFilter = document.getElementById('roleFilter').value;
+    const searchInput = document.getElementById('searchInput');
+    const roleFilter = document.getElementById('roleFilter');
+
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const roleValue = roleFilter ? roleFilter.value : '';
 
     filteredUsers = allUsers.filter(user => {
         const matchesSearch = !searchTerm ||
             (user.name && user.name.toLowerCase().includes(searchTerm)) ||
             (user.email && user.email.toLowerCase().includes(searchTerm));
 
-        const matchesRole = !roleFilter || user.role === roleFilter;
+        const matchesRole = !roleValue || user.role === roleValue;
 
         return matchesSearch && matchesRole;
     });
@@ -149,7 +193,7 @@ function filterUsers() {
 }
 
 // ============================================
-// View User Details
+// Actions: View, Edit, Delete
 // ============================================
 
 window.viewUserDetails = async function (userId) {
@@ -159,113 +203,163 @@ window.viewUserDetails = async function (userId) {
     const modal = document.getElementById('userDetailsModal');
     const content = document.getElementById('userDetailsContent');
 
-    // Get user's dialogues count
+    if (!modal || !content) return;
+
+    // Get user's dialogues count (optional, don't block UI)
     let dialoguesCount = 0;
     try {
-        const dialoguesSnapshot = await db.collection('dialogues')
+        const dialoguesSnapshot = await firebase.firestore().collection('dialogues')
             .where('studentId', '==', userId)
             .get();
         dialoguesCount = dialoguesSnapshot.size;
-    } catch (error) {
-        console.error('Error counting dialogues:', error);
+    } catch (e) {
+        // Silently fail or log debug
+        console.debug('Could not count dialogues', e);
     }
 
     content.innerHTML = `
         <div class="user-details-grid">
             <div class="detail-section">
                 <h3>المعلومات الأساسية</h3>
-                <div class="detail-row">
-                    <span class="detail-label">الاسم:</span>
-                    <span class="detail-value">${user.name || '-'}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">البريد الإلكتروني:</span>
-                    <span class="detail-value">${user.email || '-'}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">الدور:</span>
-                    <span class="detail-value"><span class="role-badge role-${user.role}">${getRoleText(user.role)}</span></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">تاريخ التسجيل:</span>
-                    <span class="detail-value">${formatDate(user.createdAt)}</span>
-                </div>
+                <div class="detail-row"><span class="detail-label">الاسم:</span><span class="detail-value">${user.name || '-'}</span></div>
+                <div class="detail-row"><span class="detail-label">البريد:</span><span class="detail-value">${user.email || '-'}</span></div>
+                <div class="detail-row"><span class="detail-label">الدور:</span><span class="detail-value">${getRoleText(user.role)}</span></div>
+                <div class="detail-row"><span class="detail-label">التسجيل:</span><span class="detail-value">${formatDate(user.createdAt)}</span></div>
             </div>
-
             <div class="detail-section">
                 <h3>الإحصائيات</h3>
-                <div class="detail-row">
-                    <span class="detail-label">الحوارات المنشأة:</span>
-                    <span class="detail-value">${dialoguesCount}</span>
-                </div>
+                <div class="detail-row"><span class="detail-label">الحوارات:</span><span class="detail-value">${dialoguesCount}</span></div>
             </div>
-
             ${user.grade ? `
             <div class="detail-section">
                 <h3>معلومات إضافية</h3>
-                <div class="detail-row">
-                    <span class="detail-label">الصف:</span>
-                    <span class="detail-value">${user.grade || '-'}</span>
-                </div>
-            </div>
-            ` : ''}
+                <div class="detail-row"><span class="detail-label">الصف:</span><span class="detail-value">${user.grade || '-'}</span></div>
+                <div class="detail-row"><span class="detail-label">الشعبة:</span><span class="detail-value">${user.section || '-'}</span></div>
+            </div>` : ''}
         </div>
     `;
 
     modal.style.display = 'flex';
 };
 
-// ============================================
-// Export to Excel
-// ============================================
+window.openEditUserModal = function (userId) {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return;
 
-function exportToExcel() {
-    // Simple CSV export
-    let csv = 'الاسم,البريد الإلكتروني,الدور,تاريخ التسجيل\n';
+    // Use specific edit modal or create one dynamically if you prefer.
+    // Here we'll create a dynamic one to ensure it exists.
+    let modal = document.getElementById('editUserModal');
+    if (modal) modal.remove();
 
-    filteredUsers.forEach(user => {
-        csv += `${user.name || ''},${user.email || ''},${getRoleText(user.role)},${formatDate(user.createdAt)}\n`;
+    modal = document.createElement('div');
+    modal.id = 'editUserModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="document.getElementById('editUserModal').remove()">&times;</button>
+            <h2>تعديل البيانات</h2>
+            <form id="editUserForm">
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <input type="text" id="editName" value="${user.name || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label>الدور</label>
+                    <select id="editRole">
+                        <option value="student" ${user.role === 'student' ? 'selected' : ''}>طالب</option>
+                        <option value="teacher" ${user.role === 'teacher' ? 'selected' : ''}>معلم</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>مدير</option>
+                    </select>
+                </div>
+                <!-- Optional grade/section if student -->
+                <div class="form-group">
+                   <label>الصف (للطلاب)</label>
+                   <input type="text" id="editGrade" value="${user.grade || ''}">
+                </div>
+                <div class="form-actions" style="margin-top:20px">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('editUserModal').remove()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+
+    document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newName = document.getElementById('editName').value;
+        const newRole = document.getElementById('editRole').value;
+        const newGrade = document.getElementById('editGrade').value;
+
+        try {
+            await firebase.firestore().collection('users').doc(userId).update({
+                name: newName,
+                role: newRole,
+                grade: newGrade
+            });
+            alert('تم الحفظ');
+            modal.remove();
+            loadUsers();
+        } catch (err) {
+            alert('خطأ: ' + err.message);
+        }
     });
+};
 
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-}
+window.deleteUser = async function (userId) {
+    if (!confirm('حذف المستخدم نهائياً؟')) return;
+    try {
+        await firebase.firestore().collection('users').doc(userId).delete();
+        alert('تم الحذف');
+        document.getElementById(`row-${userId}`).remove();
+        allUsers = allUsers.filter(u => u.id !== userId);
+        updateStats();
+    } catch (err) {
+        alert('حدث خطأ: ' + err.message);
+    }
+};
 
 // ============================================
-// Helper Functions
+// Utilities
 // ============================================
 
 function getUserInitial(name) {
-    if (!name) return '👤';
-    return name.charAt(0).toUpperCase();
+    return name ? name.charAt(0).toUpperCase() : '👤';
 }
 
 function getRoleText(role) {
-    const roles = {
-        'student': 'طالب',
-        'teacher': 'معلم',
-        'admin': 'مدير'
-    };
-    return roles[role] || 'مستخدم';
+    const roles = { 'student': 'طالب', 'teacher': 'معلم', 'admin': 'مدير' };
+    return roles[role] || role;
 }
 
 function formatDate(timestamp) {
     if (!timestamp) return '-';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('ar-SA', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
+    // Firestore Timestamp to Date
+    const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return d.toLocaleDateString('ar-SA');
 }
 
 function handleLogout() {
-    auth.signOut().then(() => {
-        window.location.href = '../auth/login.html';
-    }).catch((error) => {
-        console.error('Error logging out:', error);
+    firebase.auth().signOut().then(() => {
+        window.location.href = '../auth/login.html'; // Go to login page
+    }).catch(error => {
+        console.error('Logout failed:', error);
+        alert('فشل تسجيل الخروج');
     });
+}
+
+// Export excel
+function exportToExcel() {
+    let csv = '\ufeffالاسم,البريد,الدور\n';
+    filteredUsers.forEach(u => {
+        csv += `${u.name},${u.email},${u.role}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'users.csv';
+    a.click();
 }
