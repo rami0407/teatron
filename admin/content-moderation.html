@@ -13,14 +13,16 @@
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="../css/admin.css">
+
     <style>
         .story-review-card {
             background: white;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             border: 1px solid #eee;
             transition: transform 0.2s;
+            position: relative;
         }
 
         .story-review-card:hover {
@@ -31,15 +33,61 @@
         .review-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
+            align-items: flex-start;
+            margin-bottom: 15px;
         }
 
         .review-actions {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 20px;
             padding-top: 15px;
             border-top: 1px solid #f0f0f0;
+        }
+
+        /* Story View Modal */
+        .story-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .story-modal-content {
+            background: white;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .story-modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+        }
+
+        .story-modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            /* Preserve formatting */
         }
     </style>
 </head>
@@ -86,14 +134,37 @@
                 <div class="card-header">أحدث القصص المنشورة</div>
 
                 <div id="storiesList">
-                    <!-- Placeholder Content -->
-                    <div class="empty-state">
-                        <div class="empty-icon">📝</div>
-                        <p>جاري تحميل القصص للمراجعة...</p>
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>جاري تحميل القصص...</p>
                     </div>
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Story Viewer Modal -->
+    <div id="storyViewerModal" class="story-modal">
+        <div class="story-modal-content">
+            <div class="story-modal-header">
+                <h3 id="modalStoryTitle">عنوان القصة</h3>
+                <button class="btn btn-sm btn-outline" onclick="closeStoryViewer()">×</button>
+            </div>
+            <div class="story-modal-body">
+                <div id="modalStoryMeta"
+                    style="margin-bottom: 20px; padding: 10px; background: #fff3e0; border-radius: 8px; font-size: 0.9rem; color: #666;">
+                    بيانات القصة...
+                </div>
+                <div id="modalStoryContent">
+                    <!-- Story content here -->
+                </div>
+            </div>
+            <div class="story-modal-header" style="border-top:1px solid #eee; background:white;">
+                <button class="btn btn-outline" onclick="closeStoryViewer()">إغلاق</button>
+                <button id="modalDeleteBtn" class="btn btn-outline" style="color:red; border-color:red;">حذف
+                    القصة</button>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase -->
@@ -103,50 +174,139 @@
 
     <script src="../js/firebase-config.js"></script>
     <script src="../js/auth.js"></script>
-    <script src="../js/admin-dashboard.js"></script> <!-- Reusing logic for now -->
+    <script src="../js/admin-dashboard.js"></script>
 
     <script>
-        // Simple script to load stories (embedded for quick fix)
+        // Content Moderation Logic
+        let allStories = [];
+
         document.addEventListener('DOMContentLoaded', async () => {
-            // Wait for firebase init
-            setTimeout(async () => {
-                try {
-                    const db = firebase.firestore();
-                    const snapshot = await db.collection('dialogues')
-                        .orderBy('createdAt', 'desc')
-                        .limit(10)
-                        .get();
+            // Check auth (admin)
+            firebase.auth().onAuthStateChanged(async (user) => {
+                if (!user) { window.location.href = '../auth/login.html'; return; }
+                const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+                if (!userDoc.exists || userDoc.data().role !== 'admin') { window.location.href = '../index.html'; return; }
 
-                    const container = document.getElementById('storiesList');
+                loadStories();
+            });
 
-                    if (snapshot.empty) {
-                        container.innerHTML = '<div class="empty-state"><p>لا توجد قصص حتى الآن.</p></div>';
-                        return;
+            // Logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) logoutBtn.addEventListener('click', () => firebase.auth().signOut());
+        });
+
+        async function loadStories() {
+            try {
+                const snapshot = await firebase.firestore().collection('dialogues')
+                    .orderBy('createdAt', 'desc')
+                    .limit(20)
+                    .get();
+
+                const container = document.getElementById('storiesList');
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="empty-state"><p> لا توجد قصص منشورة حتى الآن.</p></div>';
+                    return;
+                }
+
+                allStories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                container.innerHTML = allStories.map(story => {
+                    const date = story.createdAt ? story.createdAt.toDate().toLocaleDateString('ar-EG') : '-';
+                    // Determine content snippet
+                    let snippet = '';
+                    if (story.type === 'free-text' || story.content) {
+                        snippet = story.content ? story.content.substring(0, 100) + '...' : 'محتوى نصي';
+                    } else if (story.script) {
+                        snippet = 'سيناريو حوار تفاعلي';
                     }
 
-                    container.innerHTML = snapshot.docs.map(doc => {
-                        const data = doc.data();
-                        const date = data.createdAt ? data.createdAt.toDate().toLocaleDateString('ar-EG') : '-';
-                        return `
-                            <div class="story-review-card">
-                                <div class="review-header">
-                                    <h3>${data.title || 'بدون عنوان'}</h3>
-                                    <span class="badge badge-${data.type === 'manual' ? 'warning' : 'primary'}">${data.type === 'manual' ? 'قصة حرة' : 'حوار'}</span>
+                    return `
+                        <div class="story-review-card" id="card-${story.id}">
+                            <div class="review-header">
+                                <div>
+                                    <h3>${story.title || 'بدون عنوان'}</h3>
+                                    <p class="text-muted" style="margin-top:5px; font-size:0.9rem;">
+                                        ✍️ ${story.studentName || 'طالب مجهول'} | 📅 ${date}
+                                    </p>
                                 </div>
-                                <p class="text-muted">بواسطة: ${data.studentName || 'طالب'} | بتاريخ: ${date}</p>
-                                <div class="review-actions">
-                                    <button class="btn btn-sm btn-outline">👁️ عرض التفاصيل</button>
-                                </div>
+                                <span class="badge badge-${story.type === 'free-text' ? 'warning' : 'primary'}">
+                                    ${story.type === 'free-text' ? 'قصة حرة' : 'حوار'}
+                                </span>
                             </div>
-                        `;
-                    }).join('');
+                            <p style="color:#555; margin-bottom:15px;">${snippet}</p>
+                            <div class="review-actions">
+                                <button class="btn btn-sm btn-primary" onclick="viewStory('${story.id}')">👁️ عرض التفاصيل</button>
+                                <button class="btn btn-sm btn-outline" onclick="deleteStory('${story.id}')" style="color:red; border-color:#fadbd8;">🗑️ حذف</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
 
-                } catch (e) {
-                    console.error(e);
-                    document.getElementById('storiesList').innerHTML = '<p class="error-text">حدث خطأ في تحميل البيانات</p>';
-                }
-            }, 1000);
-        });
+            } catch (e) {
+                console.error(e);
+                document.getElementById('storiesList').innerHTML = '<p class="error-text">حدث خطأ في تحميل البيانات</p>';
+            }
+        }
+
+        window.viewStory = function (storyId) {
+            const story = allStories.find(s => s.id === storyId);
+            if (!story) return;
+
+            document.getElementById('modalStoryTitle').textContent = story.title || 'بدون عنوان';
+            document.getElementById('modalStoryMeta').innerHTML = `
+                الطالب: <strong>${story.studentName || '-'}</strong><br>
+                التاريخ: ${story.createdAt ? story.createdAt.toDate().toLocaleString('ar-EG') : '-'}<br>
+                النوع: ${story.type || 'عادي'}
+            `;
+
+            const contentDiv = document.getElementById('modalStoryContent');
+            if (story.type === 'free-text' || story.content) {
+                // Free text display
+                contentDiv.textContent = story.content || 'لا يوجد محتوى.';
+            } else if (story.script) {
+                // Dialogue script display
+                let dialogHtml = '<div class="dialogue-view">';
+                story.script.forEach(line => {
+                    dialogHtml += `<p><strong>${line.speaker}:</strong> ${line.text}</p>`;
+                });
+                dialogHtml += '</div>';
+                contentDiv.innerHTML = dialogHtml;
+            } else {
+                contentDiv.textContent = 'نوع قصة غير معروف أو لا يحتوي على بيانات نصية.';
+            }
+
+            // Set delete action
+            document.getElementById('modalDeleteBtn').onclick = () => deleteStory(storyId, true);
+
+            document.getElementById('storyViewerModal').style.display = 'flex';
+        }
+
+        window.closeStoryViewer = function () {
+            document.getElementById('storyViewerModal').style.display = 'none';
+        }
+
+        window.deleteStory = async function (storyId, fromModal = false) {
+            if (!confirm('هل أنت متأكد من حذف هذه القصة نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+
+            try {
+                await firebase.firestore().collection('dialogues').doc(storyId).delete();
+
+                if (fromModal) closeStoryViewer();
+
+                // Remove from UI
+                const card = document.getElementById(`card-${storyId}`);
+                if (card) card.remove();
+
+                // Update local list
+                allStories = allStories.filter(s => s.id !== storyId);
+
+                alert('تم حذف القصة بنجاح.');
+            } catch (e) {
+                console.error(e);
+                alert('حدث خطأ أثناء الحذف.');
+            }
+        }
     </script>
 </body>
 
