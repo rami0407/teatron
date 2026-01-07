@@ -44,23 +44,23 @@ service cloud.firestore {
     // Stories collection
     match /stories/{storyId} {
       allow read: if isAuthenticated();
-      allow create: if isStudent() && request.auth.uid == request.resource.data.author;
-      allow update: if isOwner(resource.data.author) || isTeacher() || isAdmin();
-      allow delete: if isOwner(resource.data.author) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.author;
+      allow update: if isOwner(resource.data.author) || isAuthenticated();
+      allow delete: if isOwner(resource.data.author) || isAuthenticated();
     }
     
     // Productions collection
     match /productions/{productionId} {
       allow read: if isAuthenticated();
-      allow create: if isStudent() && request.auth.uid in request.resource.data.students;
-      allow update: if (isStudent() && request.auth.uid in resource.data.students) || isTeacher() || isAdmin();
-      allow delete: if (isStudent() && request.auth.uid in resource.data.students) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid in request.resource.data.students;
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
     }
     
     // Challenges collection
     match /challenges/{challengeId} {
       allow read: if isAuthenticated();
-      allow create, update, delete: if isTeacher() || isAdmin();
+      allow create, update, delete: if isAuthenticated();
     }
     
     // Assessments collection (for dialogue generator)

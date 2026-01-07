@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عروضي - مسرح الدمى STEM</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">الطالب</strong></span>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="../student/dashboard.html">
+                        <span class="menu-icon">🏠</span>
+                        <span>الرئيسية</span>
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="my-productions.html">
+                        <span class="menu-icon">🎬</span>
+                        <span>عروضي</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="gallery.html">
+                        <span class="menu-icon">🖼️</span>
+                        <span>معرض العروض</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="upload.html">
+                        <span class="menu-icon">📤</span>
+                        <span>رفع عرض جديد</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main -->
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <h1>🎬 عروضي المسرحية</h1>
+                <a href="upload.html" class="btn btn-primary">📤 رفع عرض جديد</a>
+            </div>
+
+            <div id="productionsGrid" class="grid grid-3">
+                <!-- Will be populated by JavaScript -->
+                <div class="empty-state">
+                    <div class="empty-icon">🎬</div>
+                    <p>لم ترفع أي عرض بعد</p>
+                    <a href="upload.html" class="btn btn-primary">ارفع عرضك الأول</a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        let currentUser = null;
+        let userData = null;
+
+        async function initPage() {
+            try {
+                const authData = await checkAuth('student');
+                currentUser = authData.user;
+                userData = authData.userData;
+                document.getElementById('userName').textContent = userData.name;
+
+                await loadMyProductions();
+            } catch (error) {
+                console.error('Page init error:', error);
+            }
+        }
+
+        async function loadMyProductions() {
+            try {
+                const snapshot = await db.collection('productions')
+                    .where('students', 'array-contains', currentUser.uid)
+                    .orderBy('uploadDate', 'desc')
+                    .get();
+
+                const container = document.getElementById('productionsGrid');
+
+                if (snapshot.empty) {
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                snapshot.forEach(doc => {
+                    const production = doc.data();
+                    const card = createProductionCard(doc.id, production);
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error loading productions:', error);
+            }
+        }
+
+        function createProductionCard(id, production) {
+            const card = document.createElement('div');
+            card.className = 'production-card';
+
+            const date = production.uploadDate ?
+                new Date(production.uploadDate.toDate()).toLocaleDateString('ar-EG') :
+                'غير محدد';
+
+            card.innerHTML = `
+                <div class="production-thumbnail">
+                    ${production.fileType === 'video' ? '🎬' : '🖼️'}
+                    <div class="production-overlay">
+                        <div class="play-button">▶</div>
+                    </div>
+                </div>
+                <div class="production-content">
+                    <h3 class="production-title">${production.title}</h3>
+                    <p class="production-description">${production.description}</p>
+                    <div class="production-info">
+                        <span>📅 ${date}</span>
+                        <span>👁️ ${production.views || 0}</span>
+                        <span>⭐ ${production.rating || 0}</span>
+                    </div>
+                </div>
+            `;
+
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+                window.location.href = `player.html?id=${id}`;
+            });
+
+            return card;
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await logout();
+        });
+
+        initPage();
+    </script>
+</body>
+
+</html>

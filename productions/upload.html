@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رفع عرض جديد - مسرح الدمى STEM</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        .upload-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .upload-form {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .file-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--bg-secondary);
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+
+        .file-upload-area.active {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .file-upload-hint {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .file-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .file-preview.active {
+            display: block;
+        }
+
+        .file-preview-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .file-preview-icon {
+            font-size: 2rem;
+        }
+
+        .file-preview-info {
+            flex: 1;
+        }
+
+        .file-preview-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .file-preview-size {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .file-preview-remove {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .form-actions button {
+            flex: 1;
+        }
+
+        .participants-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .participant-tag {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .participant-tag button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .success-message {
+            background: var(--success-light);
+            color: var(--success-color);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .error-message {
+            background: var(--danger-light);
+            color: var(--danger-color);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM</span>
+            </div>
+            <div class="nav-right">
+                <a href="../student/dashboard.html" class="btn btn-outline btn-sm">العودة للوحة التحكم</a>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="upload-container">
+        <h1>📤 رفع عرض جديد</h1>
+        <p class="text-secondary" style="margin-bottom: 2rem;">شارك عرضك المسرحي مع زملائك ومعلميك</p>
+
+        <div class="success-message" id="successMessage">
+            ✅ تم رفع العرض بنجاح! سيتم توجيهك إلى صفحة العروض...
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            ❌ حدث خطأ أثناء رفع العرض. يرجى المحاولة مرة أخرى.
+        </div>
+
+        <form class="upload-form" id="uploadForm">
+            <!-- Title -->
+            <div class="form-group">
+                <label for="title">عنوان العرض *</label>
+                <input type="text" id="title" name="title" required placeholder="مثال: مغامرة البحث عن الكنز">
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label for="description">وصف العرض *</label>
+                <textarea id="description" name="description" required
+                    placeholder="اكتب وصفاً موجزاً عن عرضك المسرحي، القصة، والرسالة التي تريد إيصالها..."></textarea>
+            </div>
+
+            <!-- STEM Topic -->
+            <div class="form-group">
+                <label for="stemTopic">موضوع STEM *</label>
+                <select id="stemTopic" name="stemTopic" required>
+                    <option value="">اختر الموضوع...</option>
+                    <option value="science">العلوم 🔬</option>
+                    <option value="technology">التكنولوجيا 💻</option>
+                    <option value="engineering">الهندسة ⚙️</option>
+                    <option value="math">الرياضيات 📐</option>
+                    <option value="environment">البيئة 🌱</option>
+                    <option value="health">الصحة 💊</option>
+                    <option value="space">الفضاء 🚀</option>
+                    <option value="other">أخرى</option>
+                </select>
+            </div>
+
+            <!-- Grade & Section -->
+            <div class="form-group">
+                <label for="grade">الصف *</label>
+                <select id="grade" name="grade" required>
+                    <option value="">اختر الصف...</option>
+                    <option value="1">الأول</option>
+                    <option value="2">الثاني</option>
+                    <option value="3">الثالث</option>
+                    <option value="4">الرابع</option>
+                    <option value="5">الخامس</option>
+                    <option value="6">السادس</option>
+                </select>
+            </div>
+
+            <!-- Video/Image Upload -->
+            <div class="form-group">
+                <label>ملف العرض (فيديو أو صورة) *</label>
+                <div class="file-upload-area" id="fileUploadArea">
+                    <div class="file-upload-icon">🎬</div>
+                    <div class="file-upload-text">اضغط لاختيار ملف أو اسحبه هنا</div>
+                    <div class="file-upload-hint">الملفات المدعومة: MP4, MOV, AVI, JPG, PNG (حتى 100MB)</div>
+                    <input type="file" id="fileInput" name="file" accept="video/*,image/*" style="display: none;"
+                        required>
+                </div>
+                <div class="file-preview" id="filePreview">
+                    <div class="file-preview-item">
+                        <div class="file-preview-icon" id="previewIcon">📁</div>
+                        <div class="file-preview-info">
+                            <div class="file-preview-name" id="previewName">اسم الملف</div>
+                            <div class="file-preview-size" id="previewSize">حجم الملف</div>
+                        </div>
+                        <button type="button" class="file-preview-remove" id="removeFileBtn">حذف</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Participants -->
+            <div class="form-group">
+                <label for="participants">المشاركون</label>
+                <input type="text" id="participantInput" placeholder="أدخل اسم المشارك واضغط Enter">
+                <div class="participants-list" id="participantsList"></div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" onclick="history.back()">إلغاء</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    📤 رفع العرض
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p style="color: white; margin-top: 1rem;">جارٍ رفع العرض...</p>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/production-upload.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض العروض - مسرح الدمى STEM</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        .filter-section {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .filter-group select {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">الطالب</strong></span>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="../student/dashboard.html">
+                        <span class="menu-icon">🏠</span>
+                        <span>الرئيسية</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="my-productions.html">
+                        <span class="menu-icon">🎬</span>
+                        <span>عروضي</span>
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="gallery.html">
+                        <span class="menu-icon">🖼️</span>
+                        <span>معرض العروض</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main -->
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <h1>🖼️ معرض العروض المسرحية</h1>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalProductions">0</div>
+                    <div class="stat-label">عرض مسرحي</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalStudents">0</div>
+                    <div class="stat-label">طالب مشارك</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalViews">0</div>
+                    <div class="stat-label">مشاهدة</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label>تصفية حسب:</label>
+                    <select id="topicFilter">
+                        <option value="">جميع المواضيع</option>
+                        <option value="science">العلوم 🔬</option>
+                        <option value="technology">التكنولوجيا 💻</option>
+                        <option value="engineering">الهندسة ⚙️</option>
+                        <option value="math">الرياضيات 📐</option>
+                        <option value="environment">البيئة 🌱</option>
+                        <option value="health">الصحة 💊</option>
+                        <option value="space">الفضاء 🚀</option>
+                    </select>
+
+                    <select id="gradeFilter">
+                        <option value="">جميع الصفوف</option>
+                        <option value="1">الصف الأول</option>
+                        <option value="2">الصف الثاني</option>
+                        <option value="3">الصف الثالث</option>
+                        <option value="4">الصف الرابع</option>
+                        <option value="5">الصف الخامس</option>
+                        <option value="6">الصف السادس</option>
+                    </select>
+
+                    <select id="sortBy">
+                        <option value="recent">الأحدث</option>
+                        <option value="popular">الأكثر مشاهدة</option>
+                        <option value="rating">الأعلى تقييماً</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Productions Grid -->
+            <div id="productionsGrid" class="grid grid-3">
+                <!-- Will be populated by JavaScript -->
+                <div class="empty-state">
+                    <div class="empty-icon">🎬</div>
+                    <p>لا توجد عروض حالياً</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        let currentUser = null;
+        let userData = null;
+        let allProductions = [];
+
+        async function initPage() {
+            try {
+                const authData = await checkAuth('student');
+                currentUser = authData.user;
+                userData = authData.userData;
+                document.getElementById('userName').textContent = userData.name;
+
+                await loadAllProductions();
+                setupFilters();
+            } catch (error) {
+                console.error('Page init error:', error);
+            }
+        }
+
+        async function loadAllProductions() {
+            try {
+                const snapshot = await db.collection('productions')
+                    .where('status', '==', 'published')
+                    .orderBy('uploadDate', 'desc')
+                    .get();
+
+                allProductions = [];
+                snapshot.forEach(doc => {
+                    allProductions.push({ id: doc.id, ...doc.data() });
+                });
+
+                updateStats();
+                displayProductions(allProductions);
+
+            } catch (error) {
+                console.error('Error loading productions:', error);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('totalProductions').textContent = allProductions.length;
+
+            const uniqueStudents = new Set();
+            let totalViews = 0;
+
+            allProductions.forEach(prod => {
+                prod.students.forEach(student => uniqueStudents.add(student));
+                totalViews += prod.views || 0;
+            });
+
+            document.getElementById('totalStudents').textContent = uniqueStudents.size;
+            document.getElementById('totalViews').textContent = totalViews;
+        }
+
+        function displayProductions(productions) {
+            const container = document.getElementById('productionsGrid');
+
+            if (productions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <p>لا توجد عروض تطابق البحث</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+
+            productions.forEach(production => {
+                const card = createProductionCard(production.id, production);
+                container.appendChild(card);
+            });
+        }
+
+        function createProductionCard(id, production) {
+            const card = document.createElement('div');
+            card.className = 'production-card';
+
+            const date = production.uploadDate ?
+                new Date(production.uploadDate.toDate()).toLocaleDateString('ar-EG') :
+                'غير محدد';
+
+            card.innerHTML = `
+                <div class="production-thumbnail">
+                    ${production.fileType === 'video' ? '🎬' : '🖼️'}
+                    <div class="production-overlay">
+                        <div class="play-button">▶</div>
+                    </div>
+                </div>
+                <div class="production-content">
+                    <h3 class="production-title">${production.title}</h3>
+                    <p class="production-description">${production.description}</p>
+                    <div class="production-meta">
+                        <span>📚 ${getStemTopicName(production.stemTopic)}</span>
+                        <span>📅 ${date}</span>
+                    </div>
+                    <div class="production-info">
+                        <span>👁️ ${production.views || 0}</span>
+                        <span>⭐ ${production.rating || 0}</span>
+                    </div>
+                </div>
+            `;
+
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+                window.location.href = `player.html?id=${id}`;
+            });
+
+            return card;
+        }
+
+        function getStemTopicName(topic) {
+            const topics = {
+                'science': 'العلوم',
+                'technology': 'التكنولوجيا',
+                'engineering': 'الهندسة',
+                'math': 'الرياضيات',
+                'environment': 'البيئة',
+                'health': 'الصحة',
+                'space': 'الفضاء'
+            };
+            return topics[topic] || topic;
+        }
+
+        function setupFilters() {
+            const topicFilter = document.getElementById('topicFilter');
+            const gradeFilter = document.getElementById('gradeFilter');
+            const sortBy = document.getElementById('sortBy');
+
+            const applyFilters = () => {
+                let filtered = [...allProductions];
+
+                // Topic filter
+                if (topicFilter.value) {
+                    filtered = filtered.filter(p => p.stemTopic === topicFilter.value);
+                }
+
+                // Grade filter
+                if (gradeFilter.value) {
+                    filtered = filtered.filter(p => p.grade === gradeFilter.value);
+                }
+
+                // Sort
+                if (sortBy.value === 'popular') {
+                    filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+                } else if (sortBy.value === 'rating') {
+                    filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                }
+
+                displayProductions(filtered);
+            };
+
+            topicFilter.addEventListener('change', applyFilters);
+            gradeFilter.addEventListener('change', applyFilters);
+            sortBy.addEventListener('change', applyFilters);
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await logout();
+        });
+
+        initPage();
+    </script>
+</body>
+
+</html>
