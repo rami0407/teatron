@@ -13,22 +13,25 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // Initialize services
-const auth = firebase.auth();
+// Initialize services
+const auth = typeof firebase.auth === 'function' ? firebase.auth() : null;
 const db = firebase.firestore();
 // Storage is optional - only initialize if needed
 const storage = typeof firebase.storage === 'function' ? firebase.storage() : null;
 
 // Set language to Arabic
-auth.languageCode = 'ar';
+if (auth) {
+  auth.languageCode = 'ar';
+}
 
 // Helper function to get current user
 function getCurrentUser() {
-  return auth.currentUser;
+  return auth ? auth.currentUser : null;
 }
 
 // Helper function to check if user is logged in
 function isLoggedIn() {
-  return auth.currentUser !== null;
+  return auth && auth.currentUser !== null;
 }
 
 // Helper function to get user role from Firestore
@@ -46,10 +49,12 @@ async function getUserRole(uid) {
 }
 
 // Auth state observer
-auth.onAuthStateChanged((user) => {
-  if (user) {
-    console.log('User logged in:', user.uid);
-  } else {
-    console.log('User logged out');
-  }
-});
+if (auth) {
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      console.log('User logged in:', user.uid);
+    } else {
+      console.log('User logged out');
+    }
+  });
+}
