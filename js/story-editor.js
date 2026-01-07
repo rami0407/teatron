@@ -356,24 +356,31 @@ function fixSpellingArabic(text) {
     corrected = corrected.replace(/\bالا\s+([أ-ي])/g, 'الأ$1');
     corrected = corrected.replace(/\bبا لا\s+([أ-ي])/g, 'بالأ$1');
 
-    // Fix user reported errors
-    corrected = corrected.replace(/نهايت\b/g, 'نهاية');
-    corrected = corrected.replace(/لزيز([أ-ي]*)\b/g, 'لذيذ$1');
-    corrected = corrected.replace(/البطط\b/g, 'البط');
+    // Fix specific reported errors (More aggressive matching)
+    corrected = corrected.replace(/مزرعت/g, 'مزرعة'); // Mazra'at -> Mazra'a
+    corrected = corrected.replace(/نهايت/g, 'نهاية'); // Nihayat -> Nihaya
+    corrected = corrected.replace(/لزيز/g, 'لذيذ'); // Laziz -> Lathith (Root fix)
+    corrected = corrected.replace(/البطط/g, 'البط'); // Al-batat -> Al-bat
+    corrected = corrected.replace(/الحيول/g, 'الخيول'); // Al-hayool -> Al-khayool
+    corrected = corrected.replace(/\bترا\b/g, 'ترى'); // Tara -> Tara (See)
+    corrected = corrected.replace(/\bترا\s/g, 'ترى ');
     corrected = corrected.replace(/\bاعدته\b/g, 'أعدته');
-    corrected = corrected.replace(/قطتاً\b/g, 'قطةً');
-    corrected = corrected.replace(/الحيول\b/g, 'الخيول');
+    corrected = corrected.replace(/قطتاً/g, 'قطةً');
 
-    // Common fixes
+    // Common replacements
     corrected = corrected.replace(/لا\s+رنب/g, 'الأرنب');
     corrected = corrected.replace(/لا\s+سد/g, 'الأسد');
     corrected = corrected.replace(/لا\s+نه/g, 'لأنه');
+
+    // Fix Common Hamza Errors
     corrected = corrected.replace(/\bاكل\b/g, 'أكل');
     corrected = corrected.replace(/\bاخذ\b/g, 'أخذ');
     corrected = corrected.replace(/\bامر\b/g, 'أمر');
     corrected = corrected.replace(/\bالى\b/g, 'إلى');
     corrected = corrected.replace(/\bان\b/g, 'أن');
     corrected = corrected.replace(/\bاذا\b/g, 'إذا');
+
+    // Fix Taa Marbuta (Common words)
     corrected = corrected.replace(/\bمدرسه\b/g, 'مدرسة');
     corrected = corrected.replace(/\bحديقه\b/g, 'حديقة');
     corrected = corrected.replace(/\bغابه\b/g, 'غابة');
