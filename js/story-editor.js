@@ -53,21 +53,35 @@ async function handleSaveStory(e) {
 
     try {
         saveBtn.disabled = true;
+        saveBtn.textContent = 'جاري التحقق...';
+
+        // Check Story Limit (Max 10 per student)
+        const snapshot = await db.collection('dialogues')
+            .where('studentId', '==', currentUser.uid)
+            .get();
+
+        if (snapshot.size >= 10) {
+            alert('⚠️ عذراً، لقد وصلت للحد الأقصى المسموح (10 قصص).\nيرجى حذف قصة قديمة لتتمكن من حفظ قصة جديدة.');
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'حفظ القصة 💾';
+            return;
+        }
+
         saveBtn.textContent = 'جاري الحفظ...';
 
         const newDoc = {
             title: title,
             studentId: currentUser.uid,
-            studentName: currentUser.displayName || 'طالب', // Ensure name is saved
-            content: content, // Single text block
+            studentName: currentUser.displayName || 'طالب',
+            content: content,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            type: 'free-text', // New type to distinguish
+            type: 'free-text',
             status: 'completed'
         };
 
         await db.collection('dialogues').add(newDoc);
 
-        alert('تم حفظ قصتك بنجاح! 🌟');
+        alert('تم حفظ قصتك بنجاح! 🌟\nيمكنك الآن رؤيتها في صفحتك الرئيسية.');
         window.location.href = 'dashboard.html';
 
     } catch (error) {
@@ -139,28 +153,8 @@ function generateStoryIdea() {
 }
 
 // ==========================================
-// AI Enhancer Logic (Simulation)
+// AI Script Converter (Scenario Mode)
 // ==========================================
-
-const EMOJI_MAP = {
-    'مرحبا': '👋', 'اهلا': '👋', 'سلام': '✌️',
-    'شكرا': '🙏', 'عفوا': '🌸',
-    'حب': '❤️', 'صداقة': '🤝', 'سعيد': '😊', 'فرح': '🎉',
-    'حزين': '😢', 'غاضب': '😡', 'خائف': '😨',
-    'فكرة': '💡', 'سؤال': '❓', 'لماذا': '🤔',
-    'نعم': '✅', 'لا': '❌', 'واو': '🤩',
-    'شمس': '☀️', 'قمر': '🌙', 'نجمة': '⭐',
-    'لعب': '🧸', 'ركض': '🏃', 'اكل': '🍎',
-    'صوت': '🔊', 'سر': '🤫'
-};
-
-const WORD_IMPROVEMENTS = {
-    'قال': ['أضاف', 'أجاب', 'عقب', 'تساءل', 'هتف'],
-    'ذهب': ['انطلق', 'توجه', 'سار', 'هرع'],
-    'رأى': ['شاهد', 'لمح', 'لاحظ', 'تأمل'],
-    'جميل': ['رائع', 'بديع', 'ساحر', 'مذهل'],
-    'كبير': ['عملاق', 'ضخم', 'هائل', 'شاسع']
-};
 
 let proposedGlobalChange = "";
 
@@ -177,76 +171,88 @@ function analyzeStoryAI() {
     }
 
     modal.classList.add('active');
-    list.innerHTML = '<div class="suggestion-item"><div class="suggestion-text">جاري تحليل قصتك... ⏳</div></div>';
+    list.innerHTML = '<div class="suggestion-item"><div class="suggestion-text">جاري تحويل قصتك لسيناريو مسرحي... 🎭⏳</div></div>';
 
     // Simulate thinking time
     setTimeout(() => {
-        let newText = originalText;
-        let changesLog = [];
-
-        // 1. Emoji Suggestions
-        Object.keys(EMOJI_MAP).forEach(keyword => {
-            if (newText.includes(keyword) && !newText.includes(EMOJI_MAP[keyword])) {
-                const regex = new RegExp(`(${keyword})`, 'gi');
-                // Replace globally but be careful not to double add if run multiple times (simple check)
-                newText = newText.replace(regex, `$1 ${EMOJI_MAP[keyword]}`);
-                if (!changesLog.includes('إضافة تعبيرات')) changesLog.push('إضافة تعبيرات');
-            }
-        });
-
-        // 2. Word Improvements
-        Object.keys(WORD_IMPROVEMENTS).forEach(word => {
-            // Check if word exists as a whole word
-            const regex = new RegExp(`\\b${word}\\b`, 'gi');
-            if (regex.test(newText)) {
-                if (Math.random() > 0.4) { // 60% chance to suggest
-                    const alternatives = WORD_IMPROVEMENTS[word];
-                    const betterWord = alternatives[Math.floor(Math.random() * alternatives.length)];
-                    newText = newText.replace(regex, betterWord);
-                    changesLog.push(`تحسين مفردات: "${word}" ⬅️ "${betterWord}"`);
-                }
-            }
-        });
-
-        // 3. Punctuation Fixes (Basic)
-        // Ensure paragraphs end with punctuation
-        newText = newText.replace(/([^\.\!\?\،\n])\n/g, '$1.\n');
-        if (!/[.!?،]$/.test(newText.trim())) {
-            newText = newText.trim() + '.';
-            changesLog.push('إضافة علامات ترقيم');
-        }
-
+        let newText = convertToScript(originalText);
         proposedGlobalChange = newText;
 
-        if (originalText === newText) {
-            list.innerHTML = `
-                <div style="text-align:center; padding: 20px;">
-                    <div style="font-size: 3rem;">✨</div>
-                    <h3>قصتك ممتازة!</h3>
-                    <p>لم أجد أي اقتراحات إضافية. لغتك سليمة!</p>
+        list.innerHTML = `
+            <div class="suggestion-item" style="display:block;">
+                <div style="margin-bottom:15px; color:#2c3e50; border-bottom:1px solid #eee; padding-bottom:10px;">
+                    <strong style="font-size:1.1rem;">🤖 تقرير المساعد الذكي:</strong>
+                    <p style="color:#666; font-size:0.95rem; margin-top:5px;">
+                        قمت بإعادة صياغة النص ليكون مناسباً للعرض المسرحي!
+                    </p>
+                    <ul style="font-size:0.9rem; color:#555; margin-top:5px; padding-right:20px; list-style-type: disc;">
+                        <li>📝 <strong>تحويل للسرد:</strong> تم تقسيم النص إلى حوارات واضحة.</li>
+                        <li>🎭 <strong>إضافة المشاعر:</strong> أضفت ملاحظات مثل (يضحك)، (بحزن) لمساعدة الممثلين.</li>
+                        <li>🗣️ <strong>تحديد الأدوار:</strong> تم فصل كلام الراوي عن الشخصيات.</li>
+                    </ul>
                 </div>
-            `;
-        } else {
-            list.innerHTML = `
-                <div class="suggestion-item" style="display:block;">
-                    <strong style="display:block; margin-bottom:10px;">النص المقترح:</strong>
-                    <div class="suggestion-text" style="white-space: pre-wrap; font-family:inherit;">${diffText(originalText, newText)}</div>
-                    <div style="margin-top:10px; font-size: 0.85rem; color: #666; border-top:1px solid #eee; padding-top:5px;">
-                        <strong>التحسينات:</strong> ${changesLog.join('، ') || 'تحسينات عامة'}
-                    </div>
-                </div>
-             `;
-        }
-
-    }, 1500);
+                
+                <strong style="display:block; margin-bottom:5px;">المعاينة:</strong>
+                <div class="suggestion-text" style="white-space: pre-wrap; background:#fcfcfc; border:1px solid #e0e0e0; padding:15px; border-radius:8px; max-height:250px; overflow-y:auto; font-family:'Cairo'; line-height:1.8;">${newText}</div>
+            </div>
+        `;
+    }, 2000);
 }
 
-// Simple diff highlighter
-function diffText(oldText, newText) {
-    // For simplicity, just show the new text, maybe highlighting isn't strictly necessary for whole block or it's too complex to implement perfectly in JS snippet.
-    // Let's just return newText but wrapped in a way that suggests change.
-    // Actually, showing the WHOLE new text is safer than trying to diff char-by-char visually here.
-    return newText;
+function convertToScript(text) {
+    // Advanced heuristic to convert narrative to script
+    const lines = text.split(/\n+/);
+    let script = [];
+
+    lines.forEach(line => {
+        line = line.trim();
+        if (!line) return;
+
+        let speaker = "الراوي";
+        let dialogue = line;
+        let emotion = "";
+
+        // 1. Detect Emotions based on keywords
+        if (dialogue.match(/(ضحك|سعيد|فرح|مبتسم)/)) emotion = " (يضحك بسعادة) 😄";
+        else if (dialogue.match(/(حزين|بكى|دموع|متألم)/)) emotion = " (بصوت حزين) 😢";
+        else if (dialogue.match(/(غاضب|صاح|صرخ|انزعج)/)) emotion = " (بغضب) 😠";
+        else if (dialogue.match(/(همس|بصوت خافت)/)) emotion = " (يهمس) 🤫";
+        else if (dialogue.match(/(تفاجأ|دهشة|يا إلهي)/)) emotion = " (بدهشة) 😲";
+        else if (dialogue.match(/(سأل|تساءل|استغرب)/)) emotion = " (باستغراب) 🤔";
+
+        // 2. Try to extract Speaker Name
+        // Pattern: Name: Dialogue
+        if (line.includes(':')) {
+            const parts = line.split(':');
+            const potentialName = parts[0].trim();
+            // Assume it's a name if it's reasonably short (less than 5 words)
+            if (potentialName.split(' ').length < 5) {
+                speaker = potentialName;
+                dialogue = parts.slice(1).join(':').trim();
+            }
+        }
+        // Pattern: Said Name ... or Name said ...
+        // "قال أحمد:"
+        else if (line.match(/^قال\s+(\w+)\s*[:،]?/)) {
+            const match = line.match(/^قال\s+(\w+)\s*[:،]?/);
+            speaker = match[1];
+            dialogue = line.replace(/^قال\s+\w+\s*[:،]?\s*/, '').replace(/["«»]/g, '');
+        }
+        // "ردت ليلى:"
+        else if (line.match(/^(ردت|أجابت|صاحت)\s+(\w+)\s*[:،]?/)) {
+            const match = line.match(/^(ردت|أجابت|صاحت)\s+(\w+)\s*[:،]?/);
+            speaker = match[2];
+            dialogue = line.replace(/^(ردت|أجابت|صاحت)\s+\w+\s*[:،]?\s*/, '').replace(/["«»]/g, '');
+        }
+
+        // Clean up quotes
+        dialogue = dialogue.replace(/^["«]/, '').replace(/["»]$/, '');
+
+        // Construct Script Line
+        script.push(`**${speaker}:** ${dialogue}${emotion}`);
+    });
+
+    return script.join('\n\n');
 }
 
 function closeAIModal() {
@@ -261,7 +267,7 @@ function applyAISuggestions() {
         textarea.dispatchEvent(new Event('input'));
     }
     closeAIModal();
-    alert('تم تطبيق التعديلات! 🚀');
+    alert('تم تحويل النص إلى سيناريو! 📜\nيمكنك الآن التعديل عليه يدوياً إذا رغبت.');
 }
 
 // Expose globals
