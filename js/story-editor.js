@@ -202,3 +202,84 @@ async function handleSaveStory(e) {
         saveBtn.textContent = 'حفظ القصة 💾';
     }
 }
+
+// ==========================================
+// Creative Assistant Logic
+// ==========================================
+
+const STORY_IDEAS = [
+    "شخصيتان تجدان خريطة كنز قديمة وتقرران البحث عنه معاً.",
+    "حيوان أليف يضيع في الغابة ويلتقي بصديق جديد يساعده في العودة.",
+    "منافسة ودية بين شخصيتين لتحديد من هو الأسرع/الأذكى.",
+    "شخصية تحاول إخفاء هدية مفاجأة عن صديقها.",
+    "مشكلة بيئية في الغابة (مثل القمامة) ويتعاون الجميع لحلها.",
+    "يوم ممطر يمنع الشخصيات من اللعب في الخارج، فيبتكرون لعبة داخلية.",
+    "شخصية تغضب من صديقها، ثم تتعلم كيف تعتذر وتسامح.",
+    "مغامرة للبحث عن المكون السري لوصفة طعام عجيبة."
+];
+
+function toggleAssistant() {
+    const sidebar = document.getElementById('creativeSidebar');
+    sidebar.classList.toggle('open');
+}
+
+function insertText(text) {
+    // Determine where to insert
+    // ideally, we want the currently focused textarea.
+    // However, if sidebar button is clicked, focus is lost.
+    // We can track the last focused textarea or just append to the last one.
+
+    // Simple approach: Find the last empty textarea or append a new line
+    const textareas = document.querySelectorAll('textarea');
+    let target = null;
+
+    // Try to find the last focused one (if we tracked it) or the last one
+    // For now, let's just append to the last textarea if it's empty, or create a new line if full
+
+    if (textareas.length > 0) {
+        const last = textareas[textareas.length - 1];
+        if (last.value.trim() === '') {
+            target = last;
+        }
+    }
+
+    if (!target) {
+        addDialogueLine();
+        const newTextareas = document.querySelectorAll('textarea');
+        target = newTextareas[newTextareas.length - 1];
+    }
+
+    // Insert text
+    if (target.value) {
+        target.value += ' ' + text;
+    } else {
+        target.value = text;
+    }
+
+    // Highlight effect
+    target.style.backgroundColor = '#fff3cd';
+    setTimeout(() => {
+        target.style.backgroundColor = '';
+    }, 500);
+}
+
+function generateStoryIdea() {
+    const ideaBox = document.getElementById('ideaDisplay');
+    const randomIdea = STORY_IDEAS[Math.floor(Math.random() * STORY_IDEAS.length)];
+
+    ideaBox.innerHTML = `<strong>💡 فكرة:</strong> ${randomIdea}`;
+    ideaBox.style.display = 'block';
+
+    // Auto-fill title if empty
+    const titleInput = document.getElementById('storyTitle');
+    if (!titleInput.value) {
+        titleInput.value = randomIdea.substring(0, 30) + '...';
+        titleInput.style.backgroundColor = '#e8f5e9';
+        setTimeout(() => titleInput.style.backgroundColor = '', 1000);
+    }
+}
+
+// Expose functions globally
+window.toggleAssistant = toggleAssistant;
+window.insertText = insertText;
+window.generateStoryIdea = generateStoryIdea;

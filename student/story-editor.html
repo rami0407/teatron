@@ -185,6 +185,167 @@
             border-top: 2px solid #f0f0f0;
             padding-top: 20px;
         }
+
+        /* Creative Assistant Sidebar */
+        .creative-sidebar {
+            position: fixed;
+            left: -320px;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #eee;
+        }
+
+        .creative-sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-sidebar {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .assistant-section {
+            margin-bottom: 30px;
+        }
+
+        .assistant-section h4 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .assistant-toggle {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 999;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+
+        .assistant-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        /* Helper Tags */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-helper {
+            background: #f0f7ff;
+            color: var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid #e1e8ed;
+            transition: all 0.2s;
+        }
+
+        .tag-helper:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-idea {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border: none;
+            border-radius: 12px;
+            color: #444;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-idea:hover {
+            opacity: 0.9;
+        }
+
+        .idea-box {
+            background: #fff9c4;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-top: 10px;
+            border: 1px dashed #fbc02d;
+            animation: fadeIn 0.3s;
+        }
+
+        .starter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .starter-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+        .starter-item:hover {
+            background: #e3f2fd;
+            border-color: #bbdefb;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
@@ -244,6 +405,50 @@
             </form>
         </div>
     </div>
+
+    <!-- Creative Assistant Sidebar -->
+    <div id="creativeSidebar" class="creative-sidebar">
+        <div class="sidebar-header">
+            <h3>✨ المساعد الإبداعي</h3>
+            <button class="close-sidebar" onclick="toggleAssistant()">×</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="assistant-section">
+                <h4>🎭 أفكار قصص</h4>
+                <button class="btn-idea" onclick="generateStoryIdea()">💎 اقترح فكرة عشوائية</button>
+                <div id="ideaDisplay" class="idea-box" style="display:none;"></div>
+            </div>
+
+            <div class="assistant-section">
+                <h4>🗣️ جمل مساعدة</h4>
+                <div class="tags-container">
+                    <span class="tag-helper" onclick="insertText('مرحباً يا صديقي! كيف حالك اليوم؟')">تحية 👋</span>
+                    <span class="tag-helper" onclick="insertText('هل يمكنك مساعدتي في هذا الأمر؟')">طلب مساعدة 🤝</span>
+                    <span class="tag-helper" onclick="insertText('يا إلهي! انظروا ماذا وجدت!')">مفاجأة 😲</span>
+                    <span class="tag-helper" onclick="insertText('أنا حزين جداً لأنني أضعت لعبتي.')">حزن 😢</span>
+                    <span class="tag-helper" onclick="insertText('هذا رائع! لم أكن أعرف ذلك من قبل.')">إعجاب 🤩</span>
+                    <span class="tag-helper" onclick="insertText('لماذا لا نحاول حل المشكلة معاً؟')">اقتراح 💡</span>
+                    <span class="tag-helper" onclick="insertText('شكراً جزيلاً لك!')">شكر 🙏</span>
+                </div>
+            </div>
+
+            <div class="assistant-section">
+                <h4>🎬 بدايات مشوقة</h4>
+                <div class="starter-list">
+                    <div class="starter-item"
+                        onclick="insertText('في يوم مشمس وجميل، كان [اسم الشخصية] يمشي في الغابة...')">☀️ يوم مشمس</div>
+                    <div class="starter-item" onclick="insertText('فجأة، سمع الجميع صوتاً غريباً قادماً من...')">🔊
+                        صوت غريب</div>
+                    <div class="starter-item" onclick="insertText('لدي سر خطير أريد أن أخبرك به...')">🤫 سر خطير</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Toggle Button -->
+    <button class="assistant-toggle" onclick="toggleAssistant()">
+        ✨ مساعد الأفكار
+    </button>
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
