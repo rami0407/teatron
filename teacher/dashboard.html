@@ -270,31 +270,24 @@
                         processedDocIds.add(doc.id);
                     }
 
-                    return ` <div class="inbox-card" onclick="viewStory('${doc.id}')" > <div class="inbox-header" > <span class="student-name-tag" >👤 $ {
-                                data.studentName
-                            }
-
-                            </span> <span class="time-tag" >$ {
-                                date
-                            }
-
-                            </span> </div> <h3 style="margin:0;" >$ {
-                                data.title
-                            }
-
-                            </h3> <p style="color:#666; margin:5px 0 0; font-size:0.9rem;" > $ {
-                                (typeof data.content==='string' ? data.content : '').substring(0, 100)
-                            }
-
-                            ... </p> </div> `;
+                    return `
+                        <div class="inbox-card" onclick="viewStory('${doc.id}')">
+                            <div class="inbox-header">
+                                <span class="student-name-tag">👤 ${data.studentName}</span>
+                                <span class="time-tag">${date}</span>
+                            </div>
+                            <h3 style="margin:0;">${data.title}</h3>
+                            <p style="color:#666; margin:5px 0 0; font-size:0.9rem;">
+                                ${(typeof data.content === 'string' ? data.content : '').substring(0, 100)}...
+                            </p>
+                        </div>
+                    `;
                 }).join('');
 
-            }
-
-                , error => {
-                    console.error("Inbox Error:", error);
-                    list.innerHTML = '<p class="error-text">حدث خطأ في تحميل الرسائل.</p>';
-                });
+            }, error => {
+                console.error("Inbox Error:", error);
+                list.innerHTML = '<p class="error-text">حدث خطأ في تحميل الرسائل.</p>';
+            });
         }
 
         function showNotification(msg) {
