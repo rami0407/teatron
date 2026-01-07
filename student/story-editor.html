@@ -41,8 +41,7 @@
             color: var(--text-dark);
         }
 
-        .input-group input,
-        .input-group textarea {
+        .input-group input {
             width: 100%;
             padding: 12px;
             border: 2px solid #eee;
@@ -52,129 +51,49 @@
             transition: border-color 0.3s;
         }
 
-        .input-group input:focus,
-        .input-group textarea:focus {
+        .input-group input:focus {
             border-color: var(--primary-color);
             outline: none;
         }
 
-        .characters-selection {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .character-checkbox {
-            display: none;
-        }
-
-        .character-label {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-            border: 2px solid #eee;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .character-checkbox:checked+.character-label {
-            border-color: var(--primary-color);
-            background: rgba(255, 107, 107, 0.05);
-            transform: translateY(-2px);
-        }
-
-        .char-emoji {
-            font-size: 2rem;
-            margin-bottom: 5px;
-        }
-
-        .char-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        /* Dialogue Editor */
-        .dialogue-lines {
-            margin-top: 30px;
-        }
-
-        .dialogue-line {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            background: #fdfdfd;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #eee;
-            align-items: flex-start;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .line-speaker {
-            width: 150px;
-        }
-
-        .line-text {
-            flex: 1;
-        }
-
-        .line-text textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
+        /* Document Editor Styles */
+        .document-editor {
+            background: white;
+            min-height: 500px;
+            padding: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             border-radius: 8px;
-            resize: vertical;
-            min-height: 60px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            position: relative;
         }
 
-        .line-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .btn-remove-line {
-            color: #ff4757;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            padding: 5px;
-        }
-
-        .add-line-btn {
-            display: block;
+        .story-textarea {
             width: 100%;
-            padding: 15px;
-            background: #f8f9fa;
-            border: 2px dashed #ddd;
-            border-radius: 12px;
-            color: #666;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
+            min-height: 450px;
+            border: none;
+            resize: vertical;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #333;
+            outline: none;
+            background: transparent;
         }
 
-        .add-line-btn:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            background: rgba(255, 107, 107, 0.05);
+        .story-textarea::placeholder {
+            color: #ccc;
+        }
+
+        .editor-toolbar {
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            color: #888;
+            font-size: 0.9rem;
         }
 
         .save-actions {
@@ -186,7 +105,7 @@
             padding-top: 20px;
         }
 
-        /* Creative Assistant Sidebar */
+        /* Sidebar Styles (Reused) */
         .creative-sidebar {
             position: fixed;
             left: -320px;
@@ -229,18 +148,6 @@
             flex: 1;
         }
 
-        .assistant-section {
-            margin-bottom: 30px;
-        }
-
-        .assistant-section h4 {
-            color: var(--secondary-color);
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 5px;
-        }
-
         .assistant-toggle {
             position: fixed;
             left: 20px;
@@ -264,7 +171,7 @@
             transform: scale(1.05);
         }
 
-        /* Helper Tags */
+        /* Helper styles from previous version */
         .tags-container {
             display: flex;
             flex-wrap: wrap;
@@ -335,6 +242,18 @@
         .starter-item:hover {
             background: #e3f2fd;
             border-color: #bbdefb;
+        }
+
+        .assistant-section {
+            margin-bottom: 30px;
+        }
+
+        .assistant-section h4 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
         }
 
         @keyframes fadeIn {
@@ -442,11 +361,6 @@
             color: white;
             border: none;
         }
-
-        .btn-ai:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
     </style>
 </head>
 
@@ -467,35 +381,27 @@
         <div class="editor-container">
             <div class="story-header">
                 <h2>أطلق العنان لخيالك! 🌟</h2>
-                <p>اختر شخصياتك واكتب حوارك المسرحي بحرية.</p>
+                <p>اكتب قصتك بحرية كاملة، تماماً كما في دفترك.</p>
             </div>
 
             <form id="storyForm">
-                <!-- ... unchanged parts ... -->
                 <div class="input-group">
                     <label>عنوان القصة</label>
-                    <input type="text" id="storyTitle" placeholder="مثال: مغامرة في الغابة..." required>
+                    <input type="text" id="storyTitle" placeholder="مثال: مغامرة في الغابة..." required
+                        style="font-size: 1.2rem; font-weight: bold;">
                 </div>
 
                 <div class="input-group">
-                    <label>اختر أبطال القصة (الدمى)</label>
-                    <div id="charactersList" class="characters-selection">
-                        <div class="loading-state">
-                            <div class="spinner"></div>
-                            <p>جاري تحميل الدمى...</p>
+                    <label>القصة</label>
+                    <div class="document-editor">
+                        <div class="editor-toolbar">
+                            <span>📄 صفحة كتابة حرة</span>
+                            <span style="flex:1"></span>
+                            <span>عدد الكلمات: <span id="wordCount">0</span></span>
                         </div>
+                        <textarea id="storyContent" class="story-textarea"
+                            placeholder="ابدأ كتابة قصتك هنا... كان يا مكان..." required></textarea>
                     </div>
-                </div>
-
-                <div class="input-group">
-                    <label>الحوار المسرحي</label>
-                    <div id="dialogueContainer" class="dialogue-lines">
-                        <!-- Dialogue lines -->
-                    </div>
-
-                    <button type="button" class="add-line-btn" id="addLineBtn">
-                        ➕ أضف سطراً جديداً
-                    </button>
                 </div>
 
                 <div class="save-actions">
@@ -510,7 +416,7 @@
         </div>
     </div>
 
-    <!-- AI Suggestions Modal -->
+    <!-- AI Suggestions Modal (Same as before) -->
     <div id="aiModal" class="ai-modal">
         <div class="ai-modal-content">
             <div class="ai-modal-header">
@@ -535,9 +441,7 @@
         </div>
     </div>
 
-    <!-- Creative Assistant Sidebar (unchanged) -->
-
-    <!-- Creative Assistant Sidebar -->
+    <!-- Creative Assistant Sidebar (Same as before) -->
     <div id="creativeSidebar" class="creative-sidebar">
         <div class="sidebar-header">
             <h3>✨ المساعد الإبداعي</h3>
@@ -568,8 +472,8 @@
                 <div class="starter-list">
                     <div class="starter-item"
                         onclick="insertText('في يوم مشمس وجميل، كان [اسم الشخصية] يمشي في الغابة...')">☀️ يوم مشمس</div>
-                    <div class="starter-item" onclick="insertText('فجأة، سمع الجميع صوتاً غريباً قادماً من...')">🔊
-                        صوت غريب</div>
+                    <div class="starter-item" onclick="insertText('فجأة، سمع الجميع صوتاً غريباً قادماً من...')">🔊 صوت
+                        غريب</div>
                     <div class="starter-item" onclick="insertText('لدي سر خطير أريد أن أخبرك به...')">🤫 سر خطير</div>
                 </div>
             </div>
@@ -581,7 +485,7 @@
         ✨ مساعد الأفكار
     </button>
 
-    <!-- Firebase -->
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>

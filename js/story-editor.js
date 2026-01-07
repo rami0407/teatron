@@ -1,8 +1,6 @@
-// Story Editor JavaScript (Free Write Mode)
+// Story Editor Logic (Simplified Free Text Version)
 
 let currentUser = null;
-let selectedPuppets = [];
-let allPuppetsData = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -10,12 +8,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const authData = await checkAuth('student');
         currentUser = authData.user;
 
-        await loadPuppets();
-
-        // Add first empty line
-        addDialogueLine();
-
         setupEventListeners();
+
+        // Auto-focus on title
+        document.getElementById('storyTitle').focus();
 
     } catch (error) {
         console.error('Init error:', error);
@@ -23,199 +19,75 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function setupEventListeners() {
-    // Add Line Button
-    document.getElementById('addLineBtn').addEventListener('click', () => {
-        addDialogueLine();
-    });
-
     // Form Submit
     document.getElementById('storyForm').addEventListener('submit', handleSaveStory);
-}
 
-// Load Puppets
-async function loadPuppets() {
-    const container = document.getElementById('charactersList');
-    try {
-        const snapshot = await db.collection('puppets')
-            .where('available', '==', true)
-            .get();
+    // Word Count
+    const textarea = document.getElementById('storyContent');
+    const wordCountDisplay = document.getElementById('wordCount');
 
-        allPuppetsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        if (allPuppetsData.length === 0) {
-            container.innerHTML = '<p>لا توجد دمى متاحة حالياً.</p>';
-            return;
-        }
-
-        container.innerHTML = allPuppetsData.map(puppet => `
-            <div>
-                <input type="checkbox" id="p-${puppet.id}" value="${puppet.id}" class="character-checkbox" onchange="updateSelectedPuppets()">
-                <label for="p-${puppet.id}" class="character-label">
-                    <span class="char-emoji">${puppet.emoji || '🎭'}</span>
-                    <span class="char-name">${puppet.name}</span>
-                </label>
-            </div>
-        `).join('');
-
-    } catch (error) {
-        console.error('Error loading puppets:', error);
-        container.innerHTML = '<p class="error-text">حدث خطأ في تحميل الشخصيات</p>';
+    if (textarea && wordCountDisplay) {
+        textarea.addEventListener('input', () => {
+            const text = textarea.value.trim();
+            const count = text ? text.split(/\s+/).length : 0;
+            wordCountDisplay.textContent = count;
+        });
     }
 }
 
-// Update selected puppets list and update all dropdowns
-function updateSelectedPuppets() {
-    const checkboxes = document.querySelectorAll('.character-checkbox:checked');
-    selectedPuppets = Array.from(checkboxes).map(cb => {
-        const puppet = allPuppetsData.find(p => p.id === cb.value);
-        return puppet;
-    });
+// ==========================================
+// Save Story Logic
+// ==========================================
 
-    // Update all existing speaker dropdowns
-    const selects = document.querySelectorAll('.speaker-select');
-    selects.forEach(select => {
-        const currentValue = select.value;
-        updateSpeakerSelectOptions(select);
-        select.value = currentValue; // Try to keep selection
-    });
-}
-
-// Helper to populate a select element with selected puppets
-function updateSpeakerSelectOptions(selectElement) {
-    // Keep 'Narrator' always
-    let options = '<option value="الراوي">🎙️ الراوي</option>';
-
-    selectedPuppets.forEach(p => {
-        options += `<option value="${p.name}">${p.emoji} ${p.name}</option>`;
-    });
-
-    selectElement.innerHTML = options;
-}
-
-// Add a new dialogue line
-function addDialogueLine() {
-    const container = document.getElementById('dialogueContainer');
-    const lineId = Date.now(); // Unique ID for the line
-
-    const div = document.createElement('div');
-    div.className = 'dialogue-line';
-    div.id = `line-${lineId}`;
-
-    div.innerHTML = `
-        <div class="line-speaker">
-            <select class="speaker-select input-field" name="speaker" required>
-                <!-- Options populated by JS -->
-            </select>
-        </div>
-        <div class="line-text">
-            <textarea placeholder="ماذا تقول الشخصية؟" required></textarea>
-        </div>
-        <div class="line-actions">
-            <button type="button" class="btn-remove-line" onclick="removeLine('${lineId}')" title="حذف السطر">&times;</button>
-        </div>
-    `;
-
-    container.appendChild(div);
-
-    // Populate dropdown
-    const select = div.querySelector('.speaker-select');
-    updateSpeakerSelectOptions(select);
-
-    // Smooth scroll to new line
-    div.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-window.removeLine = function (id) {
-    const line = document.getElementById(`line-${id}`);
-    if (line) {
-        line.remove();
-    }
-
-    // Ensure at least one line remains? No, user can delete all if they want to start over
-    // But maybe good UX to have one
-    if (document.getElementById('dialogueContainer').children.length === 0) {
-        addDialogueLine();
-    }
-};
-
-// Save Story
 async function handleSaveStory(e) {
     e.preventDefault();
 
-    if (selectedPuppets.length === 0) {
-        alert('الرجاء اختيار شخصية واحدة على الأقل!');
-        return;
-    }
-
     const title = document.getElementById('storyTitle').value.trim();
-    if (!title) return;
+    const content = document.getElementById('storyContent').value;
+    const saveBtn = document.getElementById('saveBtn');
 
-    // Collect dialogue
-    const script = [];
-    const lines = document.querySelectorAll('.dialogue-line');
-
-    lines.forEach(line => {
-        const speaker = line.querySelector('.speaker-select').value;
-        const text = line.querySelector('textarea').value.trim();
-
-        if (text) {
-            script.push({
-                speaker: speaker,
-                text: text,
-                emotion: 'neutral' // Default
-            });
-        }
-    });
-
-    if (script.length === 0) {
-        alert('القصة فارغة! أضف بعض الحوارات.');
+    if (!title || !content.trim()) {
+        alert('الرجاء كتابة عنوان وقصة!');
         return;
     }
-
-    const saveBtn = document.getElementById('saveBtn');
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'جاري الحفظ...';
 
     try {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'جاري الحفظ...';
+
         const newDoc = {
             title: title,
             studentId: currentUser.uid,
-            studentName: currentUser.displayName || 'طالب', // fallback
-            script: script,
-            puppets: selectedPuppets.map(p => p.id),
+            studentName: currentUser.displayName || 'طالب', // Ensure name is saved
+            content: content, // Single text block
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            type: 'manual', // Distinguish from generated
+            type: 'free-text', // New type to distinguish
             status: 'completed'
         };
 
         await db.collection('dialogues').add(newDoc);
 
-        // Add points? Optional
-
-        alert('تم حفظ قصتك بنجاح! 🎉');
-        window.location.href = 'dashboard.html'; // Or to view the story
+        alert('تم حفظ قصتك بنجاح! 🌟');
+        window.location.href = 'dashboard.html';
 
     } catch (error) {
         console.error('Save error:', error);
-        alert('حدث خطأ أثناء الحفظ.');
+        alert('حدث خطأ أثناء الحفظ: ' + error.message);
         saveBtn.disabled = false;
         saveBtn.textContent = 'حفظ القصة 💾';
     }
 }
 
 // ==========================================
-// Creative Assistant Logic
+// Creative Assistant Features
 // ==========================================
 
 const STORY_IDEAS = [
-    "شخصيتان تجدان خريطة كنز قديمة وتقرران البحث عنه معاً.",
-    "حيوان أليف يضيع في الغابة ويلتقي بصديق جديد يساعده في العودة.",
-    "منافسة ودية بين شخصيتين لتحديد من هو الأسرع/الأذكى.",
-    "شخصية تحاول إخفاء هدية مفاجأة عن صديقها.",
-    "مشكلة بيئية في الغابة (مثل القمامة) ويتعاون الجميع لحلها.",
-    "يوم ممطر يمنع الشخصيات من اللعب في الخارج، فيبتكرون لعبة داخلية.",
-    "شخصية تغضب من صديقها، ثم تتعلم كيف تعتذر وتسامح.",
-    "مغامرة للبحث عن المكون السري لوصفة طعام عجيبة."
+    "قصة عن دمية اكتشفت أنها تستطيع الكلام مع الحيوانات.",
+    "مغامرة في مدرسة تحولت فجأة إلى قلعة من الحلوى.",
+    "حوار بين الشمس والقمر حول من هو الأهم.",
+    "رحلة البحث عن الكنز المفقود في حديقة المنزل.",
+    "قصة عن روبوت يحاول تعلم كيفية الضحك."
 ];
 
 function toggleAssistant() {
@@ -224,65 +96,47 @@ function toggleAssistant() {
 }
 
 function insertText(text) {
-    // Determine where to insert
-    // ideally, we want the currently focused textarea.
-    // However, if sidebar button is clicked, focus is lost.
-    // We can track the last focused textarea or just append to the last one.
+    const textarea = document.getElementById('storyContent');
 
-    // Simple approach: Find the last empty textarea or append a new line
-    const textareas = document.querySelectorAll('textarea');
-    let target = null;
+    // Insert at cursor position
+    if (textarea.selectionStart || textarea.selectionStart == '0') {
+        var startPos = textarea.selectionStart;
+        var endPos = textarea.selectionEnd;
+        textarea.value = textarea.value.substring(0, startPos)
+            + text
+            + textarea.value.substring(endPos, textarea.value.length);
 
-    // Try to find the last focused one (if we tracked it) or the last one
-    // For now, let's just append to the last textarea if it's empty, or create a new line if full
-
-    if (textareas.length > 0) {
-        const last = textareas[textareas.length - 1];
-        if (last.value.trim() === '') {
-            target = last;
-        }
-    }
-
-    if (!target) {
-        addDialogueLine();
-        const newTextareas = document.querySelectorAll('textarea');
-        target = newTextareas[newTextareas.length - 1];
-    }
-
-    // Insert text
-    if (target.value) {
-        target.value += ' ' + text;
+        // Move cursor after inserted text
+        textarea.selectionStart = startPos + text.length;
+        textarea.selectionEnd = startPos + text.length;
+        textarea.focus();
     } else {
-        target.value = text;
+        textarea.value += text;
+        textarea.focus();
     }
 
-    // Highlight effect
-    target.style.backgroundColor = '#fff3cd';
-    setTimeout(() => {
-        target.style.backgroundColor = '';
-    }, 500);
+    // Trigger input event to update word count
+    textarea.dispatchEvent(new Event('input'));
+
+    // Auto close sidebar on mobile
+    if (window.innerWidth < 768) {
+        toggleAssistant();
+    }
 }
 
 function generateStoryIdea() {
     const ideaBox = document.getElementById('ideaDisplay');
     const randomIdea = STORY_IDEAS[Math.floor(Math.random() * STORY_IDEAS.length)];
 
-    ideaBox.innerHTML = `<strong>💡 فكرة:</strong> ${randomIdea}`;
+    ideaBox.textContent = randomIdea;
     ideaBox.style.display = 'block';
 
-    // Auto-fill title if empty
+    // Auto fill title if empty
     const titleInput = document.getElementById('storyTitle');
     if (!titleInput.value) {
-        titleInput.value = randomIdea.substring(0, 30) + '...';
-        titleInput.style.backgroundColor = '#e8f5e9';
-        setTimeout(() => titleInput.style.backgroundColor = '', 1000);
+        titleInput.value = "قصة: " + randomIdea.substring(0, 20) + "...";
     }
 }
-
-// Expose functions globally
-window.toggleAssistant = toggleAssistant;
-window.insertText = insertText;
-window.generateStoryIdea = generateStoryIdea;
 
 // ==========================================
 // AI Enhancer Logic (Simulation)
@@ -301,110 +155,98 @@ const EMOJI_MAP = {
 };
 
 const WORD_IMPROVEMENTS = {
-    'قال': ['أضاف', 'أجاب', 'عقب', 'تساءل'],
-    'ذهب': ['انطلق', 'توجه', 'سار'],
-    'رأى': ['شاهد', 'لمح', 'لاحظ'],
-    'جميل': ['رائع', 'بديع', 'ساحر'],
-    'كبير': ['عملاق', 'ضخم', 'هائل']
+    'قال': ['أضاف', 'أجاب', 'عقب', 'تساءل', 'هتف'],
+    'ذهب': ['انطلق', 'توجه', 'سار', 'هرع'],
+    'رأى': ['شاهد', 'لمح', 'لاحظ', 'تأمل'],
+    'جميل': ['رائع', 'بديع', 'ساحر', 'مذهل'],
+    'كبير': ['عملاق', 'ضخم', 'هائل', 'شاسع']
 };
 
-let proposedChanges = [];
+let proposedGlobalChange = "";
 
 function analyzeStoryAI() {
-    const lines = document.querySelectorAll('.dialogue-line textarea');
+    const textarea = document.getElementById('storyContent');
     const modal = document.getElementById('aiModal');
     const list = document.getElementById('aiSuggestionsList');
 
-    proposedChanges = []; // Reset
-    list.innerHTML = '';
+    let originalText = textarea.value;
 
-    if (lines.length === 0) {
+    if (!originalText.trim()) {
         alert('اكتب شيئاً أولاً ليقوم الذكاء الاصطناعي بتحليله!');
         return;
     }
 
     modal.classList.add('active');
+    list.innerHTML = '<div class="suggestion-item"><div class="suggestion-text">جاري تحليل قصتك... ⏳</div></div>';
 
     // Simulate thinking time
     setTimeout(() => {
-        let suggestionsHTML = '';
-        let changeCount = 0;
+        let newText = originalText;
+        let changesLog = [];
 
-        lines.forEach((textarea, index) => {
-            let originalText = textarea.value.trim();
-            if (!originalText) return;
-
-            let newText = originalText;
-            let changesInLine = [];
-
-            // 1. Emoji Suggestions
-            Object.keys(EMOJI_MAP).forEach(keyword => {
-                if (newText.includes(keyword) && !newText.includes(EMOJI_MAP[keyword])) {
-                    // Don't replace, just append emoji if appropriate or hint
-                    // For simulation, let's append emoji to the word
-                    // Using regex to replace word with word+emoji
-                    const regex = new RegExp(`(${keyword})`, 'gi');
-                    // Avoid double emojis if already there
-                    newText = newText.replace(regex, `$1 ${EMOJI_MAP[keyword]}`);
-                    changesInLine.push(`إضافة تعبيرات: ${EMOJI_MAP[keyword]}`);
-                }
-            });
-
-            // 2. Word Improvements (Simple replacements)
-            Object.keys(WORD_IMPROVEMENTS).forEach(word => {
-                if (newText.includes(word)) {
-                    // Randomly pick an improvement 50% chance
-                    if (Math.random() > 0.5) {
-                        const alternatives = WORD_IMPROVEMENTS[word];
-                        const betterWord = alternatives[Math.floor(Math.random() * alternatives.length)];
-                        newText = newText.replace(word, betterWord);
-                        changesInLine.push(`تحسين مفردات: "${word}" ⬅️ "${betterWord}"`);
-                    }
-                }
-            });
-
-            // 3. Punctuation
-            if (!/[.!?،]$/.test(newText)) {
-                newText += '.';
-                changesInLine.push('إضافة علامات ترقيم.');
-            }
-
-            if (newText !== originalText) {
-                changeCount++;
-                proposedChanges.push({
-                    index: index,
-                    newText: newText
-                });
-
-                suggestionsHTML += `
-                    <div class="suggestion-item">
-                        <div>
-                            <strong>السطر ${index + 1}:</strong>
-                            <div class="suggestion-text">
-                                <del>${originalText}</del> <br> ⬇️ <br> <ins>${newText}</ins>
-                            </div>
-                        </div>
-                        <div style="font-size: 0.8rem; color: #666;">
-                            ${changesInLine.join('، ')}
-                        </div>
-                    </div>
-                `;
+        // 1. Emoji Suggestions
+        Object.keys(EMOJI_MAP).forEach(keyword => {
+            if (newText.includes(keyword) && !newText.includes(EMOJI_MAP[keyword])) {
+                const regex = new RegExp(`(${keyword})`, 'gi');
+                // Replace globally but be careful not to double add if run multiple times (simple check)
+                newText = newText.replace(regex, `$1 ${EMOJI_MAP[keyword]}`);
+                if (!changesLog.includes('إضافة تعبيرات')) changesLog.push('إضافة تعبيرات');
             }
         });
 
-        if (changeCount === 0) {
+        // 2. Word Improvements
+        Object.keys(WORD_IMPROVEMENTS).forEach(word => {
+            // Check if word exists as a whole word
+            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+            if (regex.test(newText)) {
+                if (Math.random() > 0.4) { // 60% chance to suggest
+                    const alternatives = WORD_IMPROVEMENTS[word];
+                    const betterWord = alternatives[Math.floor(Math.random() * alternatives.length)];
+                    newText = newText.replace(regex, betterWord);
+                    changesLog.push(`تحسين مفردات: "${word}" ⬅️ "${betterWord}"`);
+                }
+            }
+        });
+
+        // 3. Punctuation Fixes (Basic)
+        // Ensure paragraphs end with punctuation
+        newText = newText.replace(/([^\.\!\?\،\n])\n/g, '$1.\n');
+        if (!/[.!?،]$/.test(newText.trim())) {
+            newText = newText.trim() + '.';
+            changesLog.push('إضافة علامات ترقيم');
+        }
+
+        proposedGlobalChange = newText;
+
+        if (originalText === newText) {
             list.innerHTML = `
                 <div style="text-align:center; padding: 20px;">
                     <div style="font-size: 3rem;">✨</div>
                     <h3>قصتك ممتازة!</h3>
-                    <p>لم أجد أي اقتراحات للتحسين. أحسنت!</p>
+                    <p>لم أجد أي اقتراحات إضافية. لغتك سليمة!</p>
                 </div>
             `;
         } else {
-            list.innerHTML = suggestionsHTML;
+            list.innerHTML = `
+                <div class="suggestion-item" style="display:block;">
+                    <strong style="display:block; margin-bottom:10px;">النص المقترح:</strong>
+                    <div class="suggestion-text" style="white-space: pre-wrap; font-family:inherit;">${diffText(originalText, newText)}</div>
+                    <div style="margin-top:10px; font-size: 0.85rem; color: #666; border-top:1px solid #eee; padding-top:5px;">
+                        <strong>التحسينات:</strong> ${changesLog.join('، ') || 'تحسينات عامة'}
+                    </div>
+                </div>
+             `;
         }
 
-    }, 1500); // 1.5s Fake delay
+    }, 1500);
+}
+
+// Simple diff highlighter
+function diffText(oldText, newText) {
+    // For simplicity, just show the new text, maybe highlighting isn't strictly necessary for whole block or it's too complex to implement perfectly in JS snippet.
+    // Let's just return newText but wrapped in a way that suggests change.
+    // Actually, showing the WHOLE new text is safer than trying to diff char-by-char visually here.
+    return newText;
 }
 
 function closeAIModal() {
@@ -412,21 +254,20 @@ function closeAIModal() {
 }
 
 function applyAISuggestions() {
-    const lines = document.querySelectorAll('.dialogue-line textarea');
-
-    proposedChanges.forEach(change => {
-        if (lines[change.index]) {
-            lines[change.index].value = change.newText;
-            // Highlight change
-            lines[change.index].style.backgroundColor = '#e6fcf5';
-            setTimeout(() => lines[change.index].style.backgroundColor = '', 1000);
-        }
-    });
-
+    const textarea = document.getElementById('storyContent');
+    if (proposedGlobalChange) {
+        textarea.value = proposedGlobalChange;
+        // update word count
+        textarea.dispatchEvent(new Event('input'));
+    }
     closeAIModal();
-    alert('تم تطبيق تحسينات الذكاء الاصطناعي بنجاح! 🚀');
+    alert('تم تطبيق التعديلات! 🚀');
 }
 
+// Expose globals
+window.toggleAssistant = toggleAssistant;
+window.insertText = insertText;
+window.generateStoryIdea = generateStoryIdea;
 window.analyzeStoryAI = analyzeStoryAI;
 window.closeAIModal = closeAIModal;
 window.applyAISuggestions = applyAISuggestions;
