@@ -76,280 +76,351 @@
         .folder-icon {
             font-size: 2.5rem;
         }
+
+        .folder-icon {
+            font-size: 2.5rem;
+        }
+
+        /* Story View Modal Styles */
+        .story-content-container {
+            font-size: 1.1rem;
+            text-align: right;
+            line-height: 1.8;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 10px;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .dialogue-line {
+            margin-bottom: 12px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .char-name {
+            color: #d81b60;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .emotion-tag {
+            font-size: 0.85em;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-right: 5px;
+        }
+
+        .meta-info {
+            background: #f0f2f5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #555;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .btn-reward {
+            background: #7209b7;
+            color: white;
+            border: none;
+            transition: 0.3s;
+        }
+
+        .btn-reward:hover {
+            background: #560bad;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(114, 9, 183, 0.3);
+        }
+
+        .btn-reward:disabled {
+            background: #ccc;
+            transform: none;
+            box-shadow: none;
+        }
     </style>
+
 </head>
 
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="container">
-            <div class="logo">
-                <span class="logo-icon">🎓</span>
-                <span>بوابة المعلم</span>
+    < !-- Navigation -->
+        <nav>
+            <div class="container">
+                <div class="logo"><span class="logo-icon">🎓</span><span>بوابة المعلم</span></div>
+                <div class="nav-right">
+                    <div id="notificationBadge"
+                        style="display:none; background:red; color:white; border-radius:50%; padding:2px 8px; font-size:0.8rem;">
+                        0</div><span class="user-greeting">مرحباً,
+                        <strong id="userName">المعلم</strong></span><button id="logoutBtn"
+                        class="btn btn-outline btn-sm">تسجيل الخروج</button>
+                </div>
             </div>
-            <div class="nav-right">
-                <div id="notificationBadge"
-                    style="display:none; background:red; color:white; border-radius:50%; padding:2px 8px; font-size:0.8rem;">
-                    0</div>
-                <span class="user-greeting">مرحباً, <strong id="userName">المعلم</strong></span>
-                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <ul class="sidebar-menu">
-                <li class="menu-item active">
-                    <a href="dashboard.html">
-                        <span class="menu-icon">📥</span>
-                        <span>صندوق الوارد</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="students.html">
-                        <span class="menu-icon">👥</span>
-                        <span>إدارة الطلاب</span>
-                    </a>
-                </li>
-            </ul>
-        </aside>
-
-        <!-- Main Dashboard -->
-        <main class="dashboard-main">
-            <div class="dashboard-header">
-                <h1>📬 البريد الوارد من الطلاب</h1>
-                <p class="text-muted">القصص والمواضيع المرسلة للمراجعة</p>
-            </div>
-
-            <!-- Folders Layout (Optional Idea: Group by Student) -->
-            <!-- <div class="folder-view">
-                 Dynamic Folders (Libraries) 
-            </div> -->
-
-            <div id="inboxList">
+        </nav>
+        < !-- Main Content -->
+            <div class="dashboard-container">
+                < !-- Sidebar -->
+                    <aside class="sidebar">
+                        <ul class="sidebar-menu">
+                            <li class="menu-item active"><a href="dashboard.html"><span
+                                        class="menu-icon">📥</span><span>صندوق الوارد</span></a></li>
+                            <li class="menu-item"><a href="students.html"><span class="menu-icon">👥</span><span>إدارة
+                                        الطلاب</span></a></li>
+                        </ul>
+                    </aside>
+                    < !-- Main Dashboard -->
+                        <main class="dashboard-main">
+                            <div class="dashboard-header">
+                                <h1>📬 البريد الوارد من الطلاب</h1>
+                                <p class="text-muted">القصص والمواضيع المرسلة للمراجعة</p>
+                            </div>
+                            < !-- Folders Layout (Optional Idea: Group by Student) -->
+                                < !-- <div class="folder-view">Dynamic Folders (Libraries)
+            </div>--><div id="inboxList">
                 <div class="loading-state" style="text-align:center; padding:40px;">
                     <div class="spinner" style="margin:0 auto;"></div>
                     <p>جاري مزامنة الرسائل...</p>
                 </div>
             </div>
-
-        </main>
-    </div>
-
-    <!-- Notification Toast -->
-    <div id="toast"
-        style="position:fixed; bottom:20px; left:20px; background:#333; color:white; padding:15px; border-radius:8px; display:none; z-index:9999;">
-        🔔 لديك رسالة جديدة!
-    </div>
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-    <!-- Scripts -->
-    <script src="../js/firebase-config.js"></script>
-    <script src="../js/auth.js"></script>
-    <script>
-        let currentUser = null;
-        const processedDocIds = new Set(); // Track notification triggers
-
-        // Init
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const authData = await checkAuth('teacher');
-                currentUser = authData.user;
-                document.getElementById('userName').textContent = authData.userData.name;
-
-                setupRealtimeListener();
-
-            } catch (error) {
-                console.error(error);
-            }
-        });
-
-        // Realtime Listener
-        function setupRealtimeListener() {
-            const list = document.getElementById('inboxList');
-
-            db.collection('dialogues')
-                .where('submittedTo', '==', currentUser.uid)
-                .onSnapshot(snapshot => {
-                    if (snapshot.empty) {
-                        list.innerHTML = `
-                            <div style="text-align:center; padding:50px; background:#fff; border-radius:12px;">
-                                <div style="font-size:3rem;">📭</div>
-                                <h3>صندوق الوارد فارغ</h3>
-                                <p>لم يقم أي طالب بإرسال قصص بعد.</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    // Client-side Sorting (Desc) to avoid Index Error
-                    const docs = snapshot.docs.sort((a, b) => {
-                        const dateA = a.data().submittedAt ? a.data().submittedAt.toMillis() : 0;
-                        const dateB = b.data().submittedAt ? b.data().submittedAt.toMillis() : 0;
-                        return dateB - dateA;
-                    });
-
-                    // Render List
-                    list.innerHTML = docs.map(doc => {
-                        const data = doc.data();
-                        const date = data.submittedAt ? data.submittedAt.toDate().toLocaleString('ar-EG') : 'الآن';
-
-                        // Check for new notifications
-                        if (!processedDocIds.has(doc.id)) {
-                            // Only notify if timestamp is recent (avoid spam on reload)
-                            const now = new Date();
-                            const docTime = data.submittedAt ? data.submittedAt.toDate() : new Date();
-                            if ((now - docTime) < 10000) {
-                                showNotification(`رسالة جديدة من ${data.studentName}`);
-                            }
-                            processedDocIds.add(doc.id);
-                        }
-
-                        return `
-                             <div class="inbox-card" onclick="viewStory('${doc.id}')">
-                                <div class="inbox-header">
-                                    <span class="student-name-tag">👤 ${data.studentName}</span>
-                                    <span class="time-tag">${date}</span>
-                                </div>
-                                <h3 style="margin:0;">${data.title}</h3>
-                                <p style="color:#666; margin:5px 0 0; font-size:0.9rem;">
-                                    ${(typeof data.content === 'string' ? data.content : '').substring(0, 100)}...
-                                </p>
-                            </div>
-                        `;
-                    }).join('');
-
-                }, error => {
-                    console.error("Inbox Error:", error);
-                    list.innerHTML = '<p class="error-text">حدث خطأ في تحميل الرسائل.</p>';
-                });
-        }
-
-        function showNotification(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = "🔔 " + msg;
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 4000);
-
-            // Play sound? (Optional)
-        }
-
-        function viewStory(id) {
-            db.collection('dialogues').doc(id).get().then(doc => {
-                const data = doc.data();
-
-                let contentHtml = '';
-
-                if (typeof data.content === 'string') {
-                    // Case 1: Free Text Story
-                    contentHtml = `<div style="white-space: pre-wrap;">${data.content}</div>`;
-                } else if (Array.isArray(data.content)) {
-                    // Case 2: Structured Dialogue (Array)
-                    contentHtml = `<div class="dialogue-script">` +
-                        data.content.map(line => `
-                            <div style="margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                                <strong style="color: #d81b60;">${line.character || 'شخصية'}:</strong> 
-                                <span style="font-size: 1.1em;">${line.text}</span>
-                                ${line.emotion ? `<span style="font-size: 0.85em; background: #eee; padding: 2px 6px; border-radius: 4px; margin-right: 5px;">(${line.emotion})</span>` : ''}
-                            </div>
-                        `).join('') +
-                        `</div>`;
-                } else {
-                    // Case 3: Unknown Format
-                    contentHtml = `<p style="color:red;">تنسيق المحتوى غير مدعوم عرضة حالياً (${typeof data.content})</p>`;
-                    console.log('Unknown content format:', data.content);
-                }
-
-                const w = window.open("", "_blank");
-                w.document.write(`
-                    <html dir="rtl">
-                    <head>
-                        <title>${data.title}</title>
-                        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-                        <style>
-                            body { font-family: 'Cairo', sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; background: #f4f6f8; color: #333; }
-                            .container { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-                            h1 { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-top: 0; }
-                            .meta { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #e9ecef; }
-                            .content { line-height: 1.8; font-size: 1.1rem; }
-                            .btn { background: #7209b7; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; margin-top: 30px; font-family: inherit; font-size: 1rem; }
-                            .btn:hover { background: #560bad; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <h1>${data.title}</h1>
-                            <div class="meta">
-                                <strong>👤 الطالب:</strong> ${data.studentName || 'غير معروف'} <br>
-                                <strong>📅 تاريخ الإرسال:</strong> ${data.submittedAt ? new Date(data.submittedAt.toMillis()).toLocaleString('ar-EG') : 'غير معروف'}
-                            </div>
-                            <div class="content">
-                                ${contentHtml}
-                            </div>
-                            <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
-                                <button onclick="giveCoupon('${data.studentId}', '${id}')" class="btn btn-reward" id="rewardBtn">🎁 منح كوبون مكافأة</button>
-                                <button onclick="window.close()" class="btn btn-outline">إغلاق</button>
+            </main>
+            </div>
+            < !-- Notification Toast -->
+                <div id="toast"
+                    style="position:fixed; bottom:20px; left:20px; background:#333; color:white; padding:15px; border-radius:8px; display:none; z-index:9999;">
+                    🔔 لديك رسالة جديدة ! </div>
+                < !-- Story View Modal -->
+                    <div id="storyModal" class="modal">
+                        <div class="modal-content" style="max-width: 800px;"><span class="close-modal"
+                                onclick="closeStoryModal()">&times;
+                            </span>
+                            <div id="modalBody">
+                                < !-- Content injected here -->
                             </div>
                         </div>
+                    </div>
+                    < !-- Firebase -->
+                        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+                        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+                        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+                        < !-- Scripts -->
+                            <script src="../js/firebase-config.js"></script>
+                            <script src="../js/auth.js"></script>
+                            <script>let currentUser = null;
+                                const processedDocIds = new Set(); // Track notification triggers
 
-                        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"><\/script>
-                        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"><\/script>
-                        <script>
-                            // Initialize Firebase (Firestore Only)
-                            const firebaseConfig = {
-                                apiKey: "AIzaSyAfvf6nvc5yA33BgJqgGbQ_SO8G0857hIU",
-                                authDomain: "teatron-c8f6f.firebaseapp.com",
-                                projectId: "teatron-c8f6f",
-                                storageBucket: "teatron-c8f6f.firebasestorage.app",
-                                messagingSenderId: "395041638044",
-                                appId: "1:395041638044:web:2982dad13b3c51b78ecf59",
-                                measurementId: "G-J83QFXDPKS"
-                            };
-                            if (!firebase.apps.length) {
-                                firebase.initializeApp(firebaseConfig);
+                                // Init
+                                document.addEventListener('DOMContentLoaded', async () => {
+                                    try {
+                                        const authData = await checkAuth('teacher');
+                                        currentUser = authData.user;
+                                        document.getElementById('userName').textContent = authData.userData.name;
+
+                                        setupRealtimeListener();
+
+                                    }
+
+                                    catch (error) {
+                                        console.error(error);
+                                    }
+                                });
+
+                                // Realtime Listener
+                                function setupRealtimeListener() {
+                                    const list = document.getElementById('inboxList');
+
+                                    db.collection('dialogues').where('submittedTo', '==', currentUser.uid).onSnapshot(snapshot => {
+                                        if (snapshot.empty) {
+                                            list.innerHTML = ` <div style="text-align:center; padding:50px; background:#fff; border-radius:12px;" > <div style="font-size:3rem;" >📭</div> <h3>صندوق الوارد فارغ</h3> <p>لم يقم أي طالب بإرسال قصص بعد.</p> </div> `;
+                                            return;
+                                        }
+
+                                        // Client-side Sorting (Desc) to avoid Index Error
+                                        const docs = snapshot.docs.sort((a, b) => {
+                                            const dateA = a.data().submittedAt ? a.data().submittedAt.toMillis() : 0;
+                                            const dateB = b.data().submittedAt ? b.data().submittedAt.toMillis() : 0;
+                                            return dateB - dateA;
+                                        });
+
+                                        // Render List
+                                        list.innerHTML = docs.map(doc => {
+                                            const data = doc.data();
+                                            const date = data.submittedAt ? data.submittedAt.toDate().toLocaleString('ar-EG') : 'الآن';
+
+                                            // Check for new notifications
+                                            if (!processedDocIds.has(doc.id)) {
+                                                // Only notify if timestamp is recent (avoid spam on reload)
+                                                const now = new Date();
+                                                const docTime = data.submittedAt ? data.submittedAt.toDate() : new Date();
+
+                                                if ((now - docTime) < 10000) {
+                                                    showNotification(`رسالة جديدة من $ {
+                                            data.studentName
+                                        }
+
+                                        `);
+                                                }
+
+                                                processedDocIds.add(doc.id);
+                                            }
+
+                                            return ` <div class="inbox-card" onclick="viewStory('${doc.id}')" > <div class="inbox-header" > <span class="student-name-tag" >👤 $ {
+                                data.studentName
                             }
-                            const db = firebase.firestore();
-                        <\/script>
-                        <script>
-                            async function giveCoupon(studentId, storyId) {
-                                if(!confirm('هل أنت متأكد من منح الطالب كوبون مكافأة على هذه القصة؟ 🎟️')) return;
-                                
-                                const btn = document.getElementById('rewardBtn');
-                                btn.disabled = true;
-                                btn.innerText = 'جاري الإرسال...';
 
-                                try {
-                                    // 1. Increment Student Points
-                                    const studentRef = db.collection('users').doc(studentId);
-                                    await studentRef.update({
-                                        points: firebase.firestore.FieldValue.increment(1)
-                                    });
+                            </span> <span class="time-tag" >$ {
+                                date
+                            }
 
-                                    alert('تم منح الكوبون بنجاح! 🌟');
-                                    btn.innerText = '✅ تم المنح';
-                                    
-                                } catch (error) {
-                                    console.error(error);
-                                    alert('حدث خطأ: ' + error.message);
-                                    btn.disabled = false;
-                                    btn.innerText = '🎁 منح كوبون مكافأة';
+                            </span> </div> <h3 style="margin:0;" >$ {
+                                data.title
+                            }
+
+                            </h3> <p style="color:#666; margin:5px 0 0; font-size:0.9rem;" > $ {
+                                (typeof data.content==='string' ? data.content : '').substring(0, 100)
+                            }
+
+                            ... </p> </div> `;
+                                        }).join('');
+
+                                    }
+
+                                        , error => {
+                                            console.error("Inbox Error:", error);
+                                            list.innerHTML = '<p class="error-text">حدث خطأ في تحميل الرسائل.</p>';
+                                        });
                                 }
-                            }
-                        <\/script>
-                    </body></html>
-                 `);
-            });
-        }
 
-        document.getElementById('logoutBtn').addEventListener('click', () => logout());
-    </script>
+                                function showNotification(msg) {
+                                    const toast = document.getElementById('toast');
+                                    toast.textContent = "🔔 " + msg;
+                                    toast.style.display = 'block';
+
+                                    setTimeout(() => {
+                                        toast.style.display = 'none';
+                                    }
+
+                                        , 4000);
+
+                                    // Play sound? (Optional)
+                                }
+
+                                function viewStory(id) {
+                                    const modal = document.getElementById('storyModal');
+                                    const modalBody = document.getElementById('modalBody');
+
+                                    // Show loading state
+                                    modalBody.innerHTML = `
+                <div style="padding:40px; text-align:center;">
+                    <div class="spinner" style="margin:0 auto 15px;"></div>
+                    <p>جاري تحميل القصة...</p>
+                </div>
+            `;
+                                    modal.style.display = 'block';
+
+                                    db.collection('dialogues').doc(id).get().then(doc => {
+                                        if (!doc.exists) {
+                                            modalBody.innerHTML = '<p class="error-text">عذراً، هذه القصة غير متوفرة أو تم حذفها.</p>';
+                                            return;
+                                        }
+
+                                        const data = doc.data();
+
+                                        // Build Content HTML
+                                        let contentHtml = '';
+                                        if (typeof data.content === 'string') {
+                                            // Case 1: Free Text
+                                            contentHtml = `<div style="white-space: pre-wrap;">${data.content}</div>`;
+                                        } else if (Array.isArray(data.content)) {
+                                            // Case 2: Structured Dialogue
+                                            contentHtml = data.content.map(line => `
+                        <div class="dialogue-line">
+                            <span class="char-name">${line.character || 'شخصية'}:</span> 
+                            <span class="dialogue-text">${line.text}</span>
+                            ${line.emotion ? `<span class="emotion-tag">${line.emotion}</span>` : ''}
+                        </div>
+                    `).join('');
+                                        } else {
+                                            contentHtml = `<p class="text-danger">تنسيق المحتوى غير مدعوم (${typeof data.content})</p>`;
+                                        }
+
+                                        const date = data.submittedAt ? data.submittedAt.toDate().toLocaleString('ar-EG') : 'غير معروف';
+
+                                        // Render Modal Content
+                                        modalBody.innerHTML = `
+                    <h2 style="color:var(--primary-color); margin-bottom:5px;">${data.title}</h2>
+                    
+                    <div class="meta-info">
+                        <span>👤 <strong>الطالب:</strong> ${data.studentName || 'غير معروف'}</span>
+                        <span>📅 <strong>تاريخ الإرسال:</strong> ${date}</span>
+                    </div>
+
+                    <div class="story-content-container">
+                        ${contentHtml}
+                    </div>
+
+                    <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; display: flex; justify-content: center; gap: 15px;">
+                        <button onclick="giveCoupon('${data.studentId}', '${id}')" class="btn btn-reward" id="rewardBtn">🎁 منح كوبون مكافأة</button>
+                        <button onclick="closeStoryModal()" class="btn btn-outline">إغلاق</button>
+                    </div>
+                `;
+                                    }).catch(error => {
+                                        console.error("Error loading story:", error);
+                                        modalBody.innerHTML = `<p class="error-text">حدث خطأ أثناء تحميل القصة: ${error.message}</p>`;
+                                    });
+                                }
+
+                                async function giveCoupon(studentId, storyId) {
+                                    if (!confirm('هل أنت متأكد من منح الطالب كوبون مكافأة على هذه القصة؟ 🎟️')) return;
+
+                                    const btn = document.getElementById('rewardBtn');
+                                    const originalText = btn.innerHTML; // Save icon/text
+
+                                    btn.disabled = true;
+                                    btn.innerHTML = '⏳ جاري الإرسال...';
+
+                                    try {
+                                        // 1. Increment Student Points
+                                        await db.collection('users').doc(studentId).update({
+                                            points: firebase.firestore.FieldValue.increment(5) // Giving 5 points as a significant reward
+                                        });
+
+                                        // 2. Notify Success
+                                        showNotification('تم منح 5 نقاط مكافأة بنجاح! 🌟');
+
+                                        btn.innerHTML = '✅ تم المنح';
+                                        btn.style.background = '#2e7d32'; // Green
+
+                                        // Optional: Disable button permanently for this session
+                                        // btn.disabled = true; 
+
+                                    } catch (error) {
+                                        console.error(error);
+                                        alert('حدث خطأ: ' + error.message);
+                                        btn.disabled = false;
+                                        btn.innerHTML = originalText;
+                                    }
+                                }
+
+                                function closeStoryModal() {
+                                    document.getElementById('storyModal').style.display = 'none';
+                                }
+
+                                // Close modal when clicking outside
+                                window.onclick = function (event) {
+                                    const modal = document.getElementById('storyModal');
+                                    if (event.target == modal) {
+                                        closeStoryModal();
+                                    }
+                                }
+
+                                document.getElementById('logoutBtn').addEventListener('click', () => logout());
+                            </script>
 </body>
 
 </html>
