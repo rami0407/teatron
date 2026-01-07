@@ -31,7 +31,6 @@ async function loadMyStories() {
 
         const snapshot = await db.collection('dialogues')
             .where('studentId', '==', currentUser.uid)
-            .orderBy('createdAt', 'desc')
             .get();
 
         const count = snapshot.size;
@@ -52,8 +51,17 @@ async function loadMyStories() {
             return;
         }
 
-        storiesList.innerHTML = snapshot.docs.map(doc => {
-            const story = doc.data();
+        // Process and Sort Client-Side (to avoid Index error)
+        const stories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Sort descending by date
+        stories.sort((a, b) => {
+            const dateA = a.createdAt ? a.createdAt.toMillis() : 0;
+            const dateB = b.createdAt ? b.createdAt.toMillis() : 0;
+            return dateB - dateA;
+        });
+
+        storiesList.innerHTML = stories.map(story => {
             const date = story.createdAt ? story.createdAt.toDate().toLocaleDateString('ar-EG') : 'الآن';
             return `
                 <div class="story-card action-card">
@@ -61,7 +69,7 @@ async function loadMyStories() {
                     <h3>${story.title}</h3>
                     <p class="text-muted" style="font-size: 0.9rem;">${date}</p>
                     <div class="story-actions" style="margin-top: 15px;">
-                        <a href="#" class="btn btn-sm btn-outline" onclick="alert('خاصية التعديل قادمة قريباً!')">تعديل</a>
+                        <a href="story-editor.html?id=${story.id}" class="btn btn-sm btn-outline">تعديل</a>
                     </div>
                 </div>
             `;
