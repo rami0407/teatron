@@ -177,7 +177,6 @@
 
             db.collection('dialogues')
                 .where('submittedTo', '==', currentUser.uid)
-                .orderBy('submittedAt', 'desc')
                 .onSnapshot(snapshot => {
                     if (snapshot.empty) {
                         list.innerHTML = `
@@ -190,17 +189,24 @@
                         return;
                     }
 
+                    // Client-side Sorting (Desc) to avoid Index Error
+                    const docs = snapshot.docs.sort((a, b) => {
+                        const dateA = a.data().submittedAt ? a.data().submittedAt.toMillis() : 0;
+                        const dateB = b.data().submittedAt ? b.data().submittedAt.toMillis() : 0;
+                        return dateB - dateA;
+                    });
+
                     // Render List
-                    list.innerHTML = snapshot.docs.map(doc => {
+                    list.innerHTML = docs.map(doc => {
                         const data = doc.data();
                         const date = data.submittedAt ? data.submittedAt.toDate().toLocaleString('ar-EG') : 'الآن';
 
-                        // Check for new notification
+                        // Check for new notifications
                         if (!processedDocIds.has(doc.id)) {
-                            // Only notify if timestamp is very recent (avoid spam on reload)
+                            // Only notify if timestamp is recent (avoid spam on reload)
                             const now = new Date();
                             const docTime = data.submittedAt ? data.submittedAt.toDate() : new Date();
-                            if ((now - docTime) < 10000) { // 10 seconds threshold
+                            if ((now - docTime) < 10000) {
                                 showNotification(`رسالة جديدة من ${data.studentName}`);
                             }
                             processedDocIds.add(doc.id);
@@ -222,7 +228,7 @@
 
                 }, error => {
                     console.error("Inbox Error:", error);
-                    list.innerHTML = '<p class="error-text">حدث خطأ في تحميل الرسائل (قد يحتاج لفهرس جديد).</p>';
+                    list.innerHTML = '<p class="error-text">حدث خطأ في تحميل الرسائل.</p>';
                 });
         }
 
