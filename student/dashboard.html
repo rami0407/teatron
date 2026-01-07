@@ -108,6 +108,24 @@
 
 
         </main>
+        </main>
+    </div>
+
+    <!-- Teacher Selection Modal -->
+    <div id="teacherModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeTeacherModal()">&times;</span>
+            <h2>📤 إرسال القصة للمعلم</h2>
+            <p>اختر المعلم الذي تريد إرسال القصة إليه:</p>
+
+            <div id="teachersList" class="teachers-grid-selection">
+                <div class="spinner"></div>
+            </div>
+
+            <div class="modal-footer" style="margin-top:20px; text-align:center;">
+                <button onclick="closeTeacherModal()" class="btn btn-outline">إلغاء</button>
+            </div>
+        </div>
     </div>
 
     <!-- Loading Overlay -->

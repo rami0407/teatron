@@ -63,13 +63,19 @@ async function loadMyStories() {
 
         storiesList.innerHTML = stories.map(story => {
             const date = story.createdAt ? story.createdAt.toDate().toLocaleDateString('ar-EG') : 'الآن';
+            const statusBadge = story.status === 'submitted'
+                ? `<span class="badge" style="background:#e3f2fd; color:#0d47a1; font-size:0.8rem;">📤 أرسلت لـ ${story.teacherName || 'المعلم'}</span>`
+                : '';
+
             return `
                 <div class="story-card action-card">
                     <div class="story-icon">📜</div>
                     <h3>${story.title}</h3>
                     <p class="text-muted" style="font-size: 0.9rem;">${date}</p>
-                    <div class="story-actions" style="margin-top: 15px;">
+                    ${statusBadge}
+                    <div class="story-actions" style="margin-top: 15px; display:flex; gap:10px;">
                         <a href="story-editor.html?id=${story.id}" class="btn btn-sm btn-outline">تعديل</a>
+                        <button onclick="openTeacherModal('${story.id}')" class="btn btn-sm btn-primary">📤 إرسال</button>
                     </div>
                 </div>
             `;
@@ -87,4 +93,79 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 });
 
 // Initialize dashboard on page load
+// Initialize dashboard on page load
 initDashboard();
+
+// ==========================================
+// Teacher Submission Logic
+// ==========================================
+
+let selectedStoryIdToSubmit = null;
+
+function openTeacherModal(storyId) {
+    selectedStoryIdToSubmit = storyId;
+    const modal = document.getElementById('teacherModal');
+    const list = document.getElementById('teachersList');
+
+    modal.style.display = 'block';
+
+    // Fetch Teachers
+    db.collection('users').where('role', '==', 'teacher').get()
+        .then(snapshot => {
+            if (snapshot.empty) {
+                list.innerHTML = '<p>لا يوجد معلمين مسجلين حالياً.</p>';
+                return;
+            }
+
+            list.innerHTML = snapshot.docs.map(doc => {
+                const teacher = doc.data();
+                return `
+                <div class="teacher-card-select" onclick="submitStoryToTeacher('${doc.id}', '${teacher.name}')" style="cursor:pointer; border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:8px; display:flex; align-items:center; gap:10px; transition:0.2s;">
+                    <div style="font-size:1.5rem;">👨‍🏫</div>
+                    <div>
+                        <strong>${teacher.name || 'معلم'}</strong>
+                        <div style="font-size:0.8rem; color:#666;">إرسال القصة</div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        })
+        .catch(err => {
+            console.error(err);
+            list.innerHTML = '<p style="color:red">حدث خطأ في تحميل المعلمين</p>';
+        });
+}
+
+function closeTeacherModal() {
+    document.getElementById('teacherModal').style.display = 'none';
+    selectedStoryIdToSubmit = null;
+}
+
+async function submitStoryToTeacher(teacherId, teacherName) {
+    if (!confirm(`هل أنت متأكد أنك تريد إرسال القصة للمعلم: ${teacherName}؟`)) return;
+
+    try {
+        await db.collection('dialogues').doc(selectedStoryIdToSubmit).update({
+            submittedTo: teacherId,
+            teacherName: teacherName,
+            status: 'submitted',
+            submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert('✅ تم إرسال القصة بنجاح!');
+        closeTeacherModal();
+        loadMyStories(); // Refresh list
+
+    } catch (error) {
+        console.error(error);
+        alert('❌ حدث خطأ أثناء الإرسال');
+    }
+}
+
+// Close modal when clicking outside
+window.onclick = function (event) {
+    const modal = document.getElementById('teacherModal');
+    if (event.target == modal) {
+        closeTeacherModal();
+    }
+}
