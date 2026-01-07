@@ -94,8 +94,14 @@ async function loadUsers() {
             return nameA.localeCompare(nameB);
         });
 
-        filteredUsers = [...allUsers];
+        // Separate Pending Requests (Teachers with approved: false)
+        const pendingTeachers = allUsers.filter(u => u.role === 'teacher' && u.approved === false);
 
+        // Active Users (Rest)
+        // If approved field is missing, assume true for students/admins, or true for old records
+        filteredUsers = allUsers.filter(u => !(u.role === 'teacher' && u.approved === false));
+
+        renderPendingRequests(pendingTeachers);
         updateStats();
         displayUsers(filteredUsers);
     } catch (error) {
@@ -108,6 +114,46 @@ async function loadUsers() {
         }
     }
 }
+
+function renderPendingRequests(requests) {
+    const section = document.getElementById('pendingRequestsSection');
+    const tbody = document.getElementById('pendingRequestsTableBody');
+
+    if (!section || !tbody) return;
+
+    if (requests.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+    tbody.innerHTML = requests.map(user => `
+        <tr class="pending-row" style="background-color: #fffaf0;">
+            <td><strong>${user.name}</strong></td>
+            <td>${user.email}</td>
+            <td>${user.subject || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="approveUser('${user.id}')" title="موافقة">✅ موافقة</button>
+                <button class="btn btn-sm btn-outline" onclick="deleteUser('${user.id}')" title="رفض (حذف)" style="color:red; border-color:red;">❌ رفض</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.approveUser = async function (userId) {
+    if (!confirm('هل أنت متأكد من الموافقة على هذا المعلم؟')) return;
+
+    try {
+        await firebase.firestore().collection('users').doc(userId).update({
+            approved: true
+        });
+        alert('تمت الموافقة بنجاح! 🎉');
+        loadUsers(); // Reload to move user to main list
+    } catch (error) {
+        console.error('Error approving user:', error);
+        alert('حدث خطأ: ' + error.message);
+    }
+};
 
 // ============================================
 // Update Statistics
