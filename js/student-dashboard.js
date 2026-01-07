@@ -91,6 +91,7 @@ async function loadMyStories() {
                     <div class="story-actions" style="margin-top: 15px; display:flex; gap:10px;">
                         <a href="story-editor.html?id=${story.id}" class="btn btn-sm btn-outline">تعديل</a>
                         <button onclick="openTeacherModal('${story.id}')" class="btn btn-sm btn-primary">📤 إرسال</button>
+                        <button onclick="deleteStory('${story.id}')" class="btn btn-sm" style="background:#ffebee; color:#c62828; border:1px solid #ffcdd2;">🗑️ حذف</button>
                     </div>
                 </div>
             `;
@@ -99,6 +100,21 @@ async function loadMyStories() {
     } catch (error) {
         console.error('Error loading stories:', error);
         document.getElementById('myStoriesList').innerHTML = '<p class="error-text">حدث خطأ في تحميل القصص</p>';
+    }
+}
+
+async function deleteStory(storyId) {
+    if (!confirm('هل أنت متأكد من رغبتك في حذف هذه القصة؟ ⚠️\nلا يمكن التراجع عن هذا الإجراء.')) return;
+
+    try {
+        // Show loading indication on the button or global overlay? 
+        // For simplicity, we just delete and reload.
+        await db.collection('dialogues').doc(storyId).delete();
+        alert('✅ تم حذف القصة بنجاح.');
+        loadMyStories(); // Refresh list to remove deleted item
+    } catch (error) {
+        console.error('Error deleting story:', error);
+        alert('❌ حدث خطأ أثناء الحذف: ' + error.message);
     }
 }
 
