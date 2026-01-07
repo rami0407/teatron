@@ -301,7 +301,21 @@
 
                         <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"><\/script>
                         <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"><\/script>
-                        <script src="../js/firebase-config.js"><\/script>
+                        <script src="../js/firebase-config.js"><\/script> -->
+                        <script>
+                            // Initialize Firebase directly in this window
+                            const firebaseConfig = {
+                                apiKey: "AIzaSyAfvf6nvc5yA33BgJqgGbQ_SO8G0857hIU",
+                                authDomain: "teatron-c8f6f.firebaseapp.com",
+                                projectId: "teatron-c8f6f",
+                                storageBucket: "teatron-c8f6f.firebasestorage.app",
+                                messagingSenderId: "395041638044",
+                                appId: "1:395041638044:web:2982dad13b3c51b78ecf59",
+                                measurementId: "G-J83QFXDPKS"
+                            };
+                            firebase.initializeApp(firebaseConfig);
+                            const db = firebase.firestore();
+                        <\/script>
                         <script>
                             async function giveCoupon(studentId, storyId) {
                                 if(!confirm('هل أنت متأكد من منح الطالب كوبون مكافأة على هذه القصة؟ 🎟️')) return;
