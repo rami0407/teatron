@@ -1,22 +1,19 @@
 // Admin Dashboard - Main Page
 // Displays overview statistics and system status
 
-let db, auth;
+// NOTE: db and auth are initialized in firebase-config.js (assumed loaded first)
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-    db = firebase.firestore();
-    auth = firebase.auth();
-
     // Check if user is admin
-    auth.onAuthStateChanged(async (user) => {
+    firebase.auth().onAuthStateChanged(async (user) => {
         if (!user) {
             window.location.href = '../auth/login.html';
             return;
         }
 
         try {
-            const userDoc = await db.collection('users').doc(user.uid).get();
+            const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
             if (!userDoc.exists || userDoc.data().role !== 'admin') {
                 alert('ليس لديك صلاحيات الوصول لهذه الصفحة');
                 window.location.href = '../index.html';
@@ -24,20 +21,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Load user name
-            document.getElementById('userName').textContent = userDoc.data().name || 'المدير';
+            const userNameEl = document.getElementById('userName');
+            if (userNameEl) {
+                userNameEl.textContent = userDoc.data().name || 'المدير';
+            }
 
             // Load dashboard data
             await loadDashboardData();
         } catch (error) {
             console.error('Error checking permissions:', error);
-            alert('حدث خطأ في التحقق من الصلاحيات');
         }
     });
 
     // Event Listeners
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-    document.getElementById('refreshBtn').addEventListener('click', loadDashboardData);
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', loadDashboardData);
+    }
 });
+
+function handleLogout() {
+    firebase.auth().signOut().then(() => {
+        window.location.href = '../auth/login.html';
+    }).catch((error) => {
+        console.error('Error logging out:', error);
+        alert('حدث خطأ في تسجيل الخروج');
+    });
+}
 
 // ============================================
 // Load Dashboard Data
@@ -65,7 +80,7 @@ async function loadDashboardData() {
 
 async function loadUserStats() {
     try {
-        const usersSnapshot = await db.collection('users').get();
+        const usersSnapshot = await firebase.firestore().collection('users').get();
         const totalUsers = usersSnapshot.size;
 
         // Count new users this week
@@ -80,11 +95,13 @@ async function loadUserStats() {
             }
         });
 
-        document.getElementById('totalUsers').textContent = totalUsers;
-        document.getElementById('newUsersWeek').textContent = newUsersWeek;
+        const totalUsersEl = document.getElementById('totalUsers');
+        if (totalUsersEl) totalUsersEl.textContent = totalUsers;
+
+        const newUsersWeekEl = document.getElementById('newUsersWeek');
+        if (newUsersWeekEl) newUsersWeekEl.textContent = newUsersWeek;
     } catch (error) {
         console.error('Error loading user stats:', error);
-        document.getElementById('totalUsers').textContent = '-';
     }
 }
 
@@ -94,7 +111,7 @@ async function loadUserStats() {
 
 async function loadPuppetStats() {
     try {
-        const puppetsSnapshot = await db.collection('puppets').get();
+        const puppetsSnapshot = await firebase.firestore().collection('puppets').get();
         const totalPuppets = puppetsSnapshot.size;
 
         let availablePuppets = 0;
@@ -104,11 +121,13 @@ async function loadPuppetStats() {
             }
         });
 
-        document.getElementById('totalPuppets').textContent = totalPuppets;
-        document.getElementById('availablePuppets').textContent = availablePuppets;
+        const totalPuppetsEl = document.getElementById('totalPuppets');
+        if (totalPuppetsEl) totalPuppetsEl.textContent = totalPuppets;
+
+        const availablePuppetsEl = document.getElementById('availablePuppets');
+        if (availablePuppetsEl) availablePuppetsEl.textContent = availablePuppets;
     } catch (error) {
         console.error('Error loading puppet stats:', error);
-        document.getElementById('total Puppets').textContent = '-';
     }
 }
 
@@ -118,7 +137,7 @@ async function loadPuppetStats() {
 
 async function loadDialogueStats() {
     try {
-        const dialoguesSnapshot = await db.collection('dialogues').get();
+        const dialoguesSnapshot = await firebase.firestore().collection('dialogues').get();
         const totalDialogues = dialoguesSnapshot.size;
 
         // Count dialogues created today
@@ -133,11 +152,13 @@ async function loadDialogueStats() {
             }
         });
 
-        document.getElementById('totalDialogues').textContent = totalDialogues;
-        document.getElementById('newDialoguesToday').textContent = newDialoguesToday;
+        const totalDialoguesEl = document.getElementById('totalDialogues');
+        if (totalDialoguesEl) totalDialoguesEl.textContent = totalDialogues;
+
+        const newDialoguesTodayEl = document.getElementById('newDialoguesToday');
+        if (newDialoguesTodayEl) newDialoguesTodayEl.textContent = newDialoguesToday;
     } catch (error) {
         console.error('Error loading dialogue stats:', error);
-        document.getElementById('totalDialogues').textContent = '-';
     }
 }
 
@@ -147,19 +168,21 @@ async function loadDialogueStats() {
 
 async function loadAssessmentStats() {
     try {
-        const assessmentsSnapshot = await db.collection('assessments').get();
+        const assessmentsSnapshot = await firebase.firestore().collection('assessments').get();
         const totalAssessments = assessmentsSnapshot.size;
 
-        const dialoguesSnapshot = await db.collection('dialogues').get();
+        const dialoguesSnapshot = await firebase.firestore().collection('dialogues').get();
         const completionRate = totalAssessments > 0
             ? Math.round((dialoguesSnapshot.size / totalAssessments) * 100)
             : 0;
 
-        document.getElementById('totalAssessments').textContent = totalAssessments;
-        document.getElementById('completionRate').textContent = completionRate + '%';
+        const totalAssessmentsEl = document.getElementById('totalAssessments');
+        if (totalAssessmentsEl) totalAssessmentsEl.textContent = totalAssessments;
+
+        const completionRateEl = document.getElementById('completionRate');
+        if (completionRateEl) completionRateEl.textContent = completionRate + '%';
     } catch (error) {
         console.error('Error loading assessment stats:', error);
-        document.getElementById('totalAssessments').textContent = '-';
     }
 }
 
@@ -169,9 +192,10 @@ async function loadAssessmentStats() {
 
 async function loadRecentActivity() {
     const container = document.getElementById('recentActivity');
+    if (!container) return;
 
     try {
-        const dialoguesSnapshot = await db.collection('dialogues')
+        const dialoguesSnapshot = await firebase.firestore().collection('dialogues')
             .orderBy('createdAt', 'desc')
             .limit(5)
             .get();
@@ -185,8 +209,15 @@ async function loadRecentActivity() {
 
         for (const doc of dialoguesSnapshot.docs) {
             const data = doc.data();
-            const userDoc = await db.collection('users').doc(data.studentId).get();
-            const userName = userDoc.exists ? userDoc.data().name : 'مستخدم';
+            let userName = 'مستخدم';
+
+            try {
+                if (data.studentId) {
+                    const userDoc = await firebase.firestore().collection('users').doc(data.studentId).get();
+                    if (userDoc.exists) userName = userDoc.data().name;
+                }
+            } catch (e) { console.log('User fetch error', e); }
+
             const timeAgo = getTimeAgo(data.createdAt);
 
             html += `
@@ -214,9 +245,10 @@ async function loadRecentActivity() {
 
 async function loadPopularPuppets() {
     const container = document.getElementById('popularPuppets');
+    if (!container) return;
 
     try {
-        const dialoguesSnapshot = await db.collection('dialogues').get();
+        const dialoguesSnapshot = await firebase.firestore().collection('dialogues').get();
 
         // Count puppet usage
         const puppetUsage = {};
@@ -240,8 +272,11 @@ async function loadPopularPuppets() {
         let html = '<div class="popular-list">';
 
         for (const [puppetId, count] of sortedPuppets) {
-            const puppetDoc = await db.collection('puppets').doc(puppetId).get();
-            const puppetData = puppetDoc.exists ? puppetDoc.data() : { name: puppetId, emoji: '🎭' };
+            let puppetData = { name: puppetId, emoji: '🎭' };
+            try {
+                const puppetDoc = await firebase.firestore().collection('puppets').doc(puppetId).get();
+                if (puppetDoc.exists) puppetData = puppetDoc.data();
+            } catch (e) { }
 
             html += `
                 <div class="popular-item">
@@ -257,7 +292,7 @@ async function loadPopularPuppets() {
         html += '</div>';
         container.innerHTML = html;
     } catch (error) {
-        console.error('Error loading popular puppets:', error);
+        // console.error('Error loading popular puppets:', error);
         container.innerHTML = '<p class="error-state">حدث خطأ في تحميل البيانات</p>';
     }
 }
@@ -269,6 +304,7 @@ async function loadPopularPuppets() {
 async function checkSystemStatus() {
     const storageStatus = document.getElementById('storageStatus');
     const storageValue = document.getElementById('storageValue');
+    if (!storageStatus || !storageValue) return;
 
     try {
         // Check if storage is initialized
@@ -293,7 +329,8 @@ function getTimeAgo(timestamp) {
     if (!timestamp) return '';
 
     const now = new Date();
-    const then = timestamp.toDate();
+    // Handle both Firestore Timestamp and standard Date
+    const then = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     const diff = Math.floor((now - then) / 1000); // seconds
 
     if (diff < 60) return 'منذ لحظات';
@@ -301,13 +338,4 @@ function getTimeAgo(timestamp) {
     if (diff < 86400) return `منذ ${Math.floor(diff / 3600)} ساعة`;
     if (diff < 604800) return `منذ ${Math.floor(diff / 86400)} يوم`;
     return `منذ ${Math.floor(diff / 604800)} أسبوع`;
-}
-
-function handleLogout() {
-    auth.signOut().then(() => {
-        window.location.href = '../auth/login.html';
-    }).catch((error) => {
-        console.error('Error logging out:', error);
-        alert('حدث خطأ في تسجيل الخروج');
-    });
 }
