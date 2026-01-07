@@ -293,13 +293,20 @@ function analyzeStoryAI() {
 function fixSpelling(text) {
     let corrected = text;
 
-    // Fix Broken Words (Space inside words) based on common patterns
-    // Fix "ال X" -> "الX"
+    // Fix Broken Words (Space inside words)
     corrected = corrected.replace(/\bال\s+([أ-ي])/g, 'ال$1');
     corrected = corrected.replace(/\bالا\s+([أ-ي])/g, 'الأ$1');
     corrected = corrected.replace(/\bبا لا\s+([أ-ي])/g, 'بالأ$1');
 
-    // Specific user examples
+    // Fix specific reported errors from user
+    corrected = corrected.replace(/نهايت\b/g, 'نهاية'); // Taa Marbuta
+    corrected = corrected.replace(/لزيز([أ-ي]*)\b/g, 'لذيذ$1'); // Zal vs Thal
+    corrected = corrected.replace(/البطط\b/g, 'البط'); // Spelling
+    corrected = corrected.replace(/\bاعدته\b/g, 'أعدته'); // Hamza
+    corrected = corrected.replace(/قطتاً\b/g, 'قطةً'); // Taa Marbuta with Tanween
+    corrected = corrected.replace(/الحيول\b/g, 'الخيول'); // Haa vs Khaa mismatch? Or maybe 'Khayool'
+
+    // Fix "Laa" + noun separation
     corrected = corrected.replace(/لا\s+رنب/g, 'الأرنب');
     corrected = corrected.replace(/لا\s+سد/g, 'الأسد');
     corrected = corrected.replace(/لا\s+نه/g, 'لأنه');
@@ -309,12 +316,18 @@ function fixSpelling(text) {
     corrected = corrected.replace(/\bاخذ\b/g, 'أخذ');
     corrected = corrected.replace(/\bامر\b/g, 'أمر');
     corrected = corrected.replace(/\bالى\b/g, 'إلى');
-    corrected = corrected.replace(/\bان\b/g, 'أن');
+    corrected = corrected.replace(/\bان\b/g, 'أن'); // Could be Anna or Inna, context matters but default to Hamza above is safer often
+    corrected = corrected.replace(/\bاذا\b/g, 'إذا');
 
     // Fix Taa Marbuta (Simple cases)
     corrected = corrected.replace(/\bمدرسه\b/g, 'مدرسة');
     corrected = corrected.replace(/\bحديقه\b/g, 'حديقة');
     corrected = corrected.replace(/\bغابه\b/g, 'غابة');
+    corrected = corrected.replace(/\bقصة\s/g, 'قصة '); // Ensure space?
+
+    // Punctuation spacing
+    corrected = corrected.replace(/\s+([،.])/g, '$1'); // Remove space before comma/dot
+    corrected = corrected.replace(/([،.])([^\s])/g, '$1 $2'); // Add space after comma/dot
 
     return corrected;
 }
