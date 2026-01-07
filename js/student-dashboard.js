@@ -4,17 +4,23 @@ let currentUser = null;
 let userData = null;
 
 // Check authentication and load dashboard
+// Check authentication and load dashboard
 async function initDashboard() {
     try {
         const authData = await checkAuth('student');
         currentUser = authData.user;
         userData = authData.userData;
 
-        // Update UI with user data
-        document.getElementById('userName').textContent = userData.name;
-        document.getElementById('studentGrade').textContent = `الصف ${userData.grade || '-'}`;
-        document.getElementById('studentSection').textContent = userData.section || '-';
-        document.getElementById('studentPoints').textContent = userData.points || 0;
+        // Initial UI Update
+        updateUserUI(userData);
+
+        // Real-time Listener for Points/Data updates
+        db.collection('users').doc(currentUser.uid)
+            .onSnapshot(doc => {
+                if (doc.exists) {
+                    updateUserUI(doc.data());
+                }
+            });
 
         // Load content
         loadMyStories();
@@ -22,6 +28,15 @@ async function initDashboard() {
     } catch (error) {
         console.error('Dashboard init error:', error);
     }
+}
+
+function updateUserUI(data) {
+    document.getElementById('userName').textContent = data.name;
+    document.getElementById('studentGrade').textContent = `الصف ${data.grade || '-'}`;
+    document.getElementById('studentSection').textContent = data.section || '-';
+    // Animate points change?
+    const pointsEl = document.getElementById('studentPoints');
+    pointsEl.textContent = data.points || 0;
 }
 
 async function loadMyStories() {
