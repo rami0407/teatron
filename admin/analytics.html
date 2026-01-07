@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التحليلات - مسرح الدمى</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .chart-placeholder {
+            color: #ccc;
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">📊</span>
+                <span>مسرح الدمى - التحليلات</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">المدير</strong></span>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item"><a href="dashboard.html"><span
+                            class="menu-icon">🏠</span><span>الرئيسية</span></a></li>
+                <li class="menu-item"><a href="users.html"><span class="menu-icon">👥</span><span>إدارة
+                            المستخدمين</span></a></li>
+                <li class="menu-item"><a href="puppet-management.html"><span class="menu-icon">🎭</span><span>إدارة
+                            الدمى</span></a></li>
+                <li class="menu-item active"><a href="analytics.html"><span
+                            class="menu-icon">📊</span><span>التحليلات</span></a></li>
+                <li class="menu-item"><a href="content-moderation.html"><span
+                            class="menu-icon">📋</span><span>المحتوى</span></a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <h1>📊 تحليلات النظام</h1>
+                <p>متابعة أداء الطلاب واستخدام النظام</p>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-4 mb-2">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalStories">0</div>
+                    <div class="stat-label">إجمالي القصص</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeStudents">0</div>
+                    <div class="stat-label">نشط هذا الأسبوع</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completionRate">0%</div>
+                    <div class="stat-label">نسبة الإكمال</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="avgTime">0</div>
+                    <div class="stat-label">متوسط وقت النشاط (دقيقة)</div>
+                </div>
+            </div>
+
+            <!-- Charts Area -->
+            <div class="analytics-grid">
+                <div class="chart-card">
+                    <div class="chart-placeholder">📈</div>
+                    <h3>نمو الطلاب</h3>
+                    <p class="text-muted">عدد الطلاب الجدد شهرياً</p>
+                    <p style="margin-top: 10px; font-weight: bold; color: var(--primary-color);">قريباً...</p>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-placeholder">🎭</div>
+                    <h3>الشخصيات الأكثر استخداماً</h3>
+                    <p class="text-muted">توزيع استخدام الدمى في القصص</p>
+                    <p style="margin-top: 10px; font-weight: bold; color: var(--primary-color);">قريباً...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin-dashboard.js"></script> <!-- Reusing dashboard functionality for logout/auth for now -->
+</body>
+
+</html>
