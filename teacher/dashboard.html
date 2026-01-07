@@ -242,17 +242,61 @@
         }
 
         function viewStory(id) {
-            // For now, easy alert. In future: Modal or Detail Page.
             db.collection('dialogues').doc(id).get().then(doc => {
                 const data = doc.data();
+
+                let contentHtml = '';
+
+                if (typeof data.content === 'string') {
+                    // Case 1: Free Text Story
+                    contentHtml = `<div style="white-space: pre-wrap;">${data.content}</div>`;
+                } else if (Array.isArray(data.content)) {
+                    // Case 2: Structured Dialogue (Array)
+                    contentHtml = `<div class="dialogue-script">` +
+                        data.content.map(line => `
+                            <div style="margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                                <strong style="color: #d81b60;">${line.character || 'شخصية'}:</strong> 
+                                <span style="font-size: 1.1em;">${line.text}</span>
+                                ${line.emotion ? `<span style="font-size: 0.85em; background: #eee; padding: 2px 6px; border-radius: 4px; margin-right: 5px;">(${line.emotion})</span>` : ''}
+                            </div>
+                        `).join('') +
+                        `</div>`;
+                } else {
+                    // Case 3: Unknown Format
+                    contentHtml = `<p style="color:red;">تنسيق المحتوى غير مدعوم عرضة حالياً (${typeof data.content})</p>`;
+                    console.log('Unknown content format:', data.content);
+                }
+
                 const w = window.open("", "_blank");
                 w.document.write(`
-                    <html dir="rtl"><body style="font-family:sans-serif; padding:40px; max-width:800px; margin:0 auto;">
-                        <h1>${data.title}</h1>
-                        <p><strong>الطالب:</strong> ${data.studentName}</p>
-                        <hr>
-                        <div style="white-space: pre-wrap; line-height:1.6; font-size:1.2rem;">${data.content}</div>
-                        <br><button onclick="window.close()" style="padding:10px 20px; cursor:pointer;">إغلاق</button>
+                    <html dir="rtl">
+                    <head>
+                        <title>${data.title}</title>
+                        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+                        <style>
+                            body { font-family: 'Cairo', sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; background: #f4f6f8; color: #333; }
+                            .container { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+                            h1 { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-top: 0; }
+                            .meta { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #e9ecef; }
+                            .content { line-height: 1.8; font-size: 1.1rem; }
+                            .btn { background: #7209b7; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; margin-top: 30px; font-family: inherit; font-size: 1rem; }
+                            .btn:hover { background: #560bad; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h1>${data.title}</h1>
+                            <div class="meta">
+                                <strong>👤 الطالب:</strong> ${data.studentName || 'غير معروف'} <br>
+                                <strong>📅 تاريخ الإرسال:</strong> ${data.submittedAt ? new Date(data.submittedAt.toMillis()).toLocaleString('ar-EG') : 'غير معروف'}
+                            </div>
+                            <div class="content">
+                                ${contentHtml}
+                            </div>
+                            <div style="text-align: center;">
+                                <button onclick="window.close()" class="btn">إغلاق</button>
+                            </div>
+                        </div>
                     </body></html>
                  `);
             });
