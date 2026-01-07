@@ -220,7 +220,7 @@
                                 </div>
                                 <h3 style="margin:0;">${data.title}</h3>
                                 <p style="color:#666; margin:5px 0 0; font-size:0.9rem;">
-                                    ${data.content.substring(0, 100)}...
+                                    ${(typeof data.content === 'string' ? data.content : '').substring(0, 100)}...
                                 </p>
                             </div>
                         `;
