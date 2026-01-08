@@ -109,22 +109,54 @@ async function handleSceneGeneration() {
 
     showLoading('جاري كتابة السيناريو والحركة...');
 
-    // 1. Construct the System Prompt
+    // 1. Construct the System Prompt - ENHANCED FOR COMPLETE SCENES
     const prompt = `
-Act as an expert Puppet Theater Dramaturg.
-Task: Convert the scene description into a structured script.
+⚠️ CRITICAL: Create a COMPLETE, FULL-LENGTH theatrical scene, NOT a short snippet!
+
+You are an EXPERT Puppet Theater Dramaturg.
 Context:
 - Main Character: ${charName}
 - Scene: "${sceneDesc}"
 
-Constraints:
-- Focus on PHYSICAL ACTION (puppets need movement).
-- Keep dialogue short and suitable for kids.
-- Characters: "${charName}" and others if implicit in scene.
-- Language: Arabic.
+🎭 LENGTH REQUIREMENT (MANDATORY):
+- MINIMUM: 15 dialogue lines
+- TARGET: 20-30 lines for complete scene
+- ⚠️ NEVER less than 15 lines - UNACCEPTABLE
 
-Output Format: STRICTLY JSON Array of objects. Do NOT use Markdown formatting.
-Example: [{"char": "Name", "dialogue": "Hello", "action": "Waves hand"}]
+📋 MANDATORY STRUCTURE:
+1. OPENING (3-4 lines): Enter, set scene
+2. DEVELOPMENT (10-20 lines): Main story
+3. CLIMAX (2-3 lines): Key moment
+4. RESOLUTION (2-3 lines): Solution/lesson
+5. CLOSING (1-2 lines): Exit/wrap up
+
+🎬 REQUIREMENTS:
+1. Language: Arabic ONLY
+2. Age: 6-12 years
+3. Each line needs:
+   - "char": Name
+   - "dialogue": Meaningful text
+   - "action": DETAILED movement (يدخل من اليمين، يقفز بفرح، يجلس، etc.)
+4. MEANINGFUL dialogue with purpose
+5. Clear EDUCATIONAL message
+6. FOCUS on PHYSICAL ACTION (puppets need movement)
+
+❌ UNACCEPTABLE:
+- Short greetings (4-5 lines) ❌
+- No clear message ❌
+- Less than 15 lines ❌
+- Vague actions (يتحرك) ❌
+
+✅ EXPECTED:
+- Complete scene (15-30 lines) ✅
+- Clear story arc ✅
+- Educational message ✅
+- Detailed actions ✅
+
+OUTPUT FORMAT: STRICTLY pure JSON  Array (NO markdown):
+[{"char": "${charName}", "dialogue": "text", "action": "movement"}, ...]
+
+GENERATE THE COMPLETE 15-30 LINE SCENE NOW:
     `.trim();
 
     try {
