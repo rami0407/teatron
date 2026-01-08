@@ -80,6 +80,7 @@ class DialogueEngine {
 
     /**
      * Build comprehensive AI prompt - ENHANCED for complete theatrical dialogue
+     * WITH STRICT LENGTH ENFORCEMENT
      */
     buildAIPrompt() {
         const puppet1 = this.puppets[0];
@@ -121,7 +122,9 @@ class DialogueEngine {
 
         const storyTypeDesc = storyTypeDescriptions[this.storyType][this.language] || storyTypeDescriptions[this.storyType]['ar'];
 
-        const prompt = `You are an expert puppet theater script writer for children aged 6-12.
+        const prompt = `You are an EXPERT puppet theater script writer for children aged 6-12.
+
+⚠️ CRITICAL: This show MUST be a COMPLETE, FULL-LENGTH theatrical performance, NOT a short snippet!
 
 CONTEXT:
 - Student emotional state: ${emotions}
@@ -129,42 +132,93 @@ CONTEXT:
 - Puppet 1: ${puppet1.name} (${puppet1.description || 'puppet character'})
 - Puppet 2: ${puppet2.name} (${puppet2.description || 'puppet character'})
 - Story type: ${storyTypeDesc}
-- Script length: ${lengthSpec.min}-${lengthSpec.max} dialogue lines
 - Language: ${languageNames[this.language]} (${this.language})
 
-TASK: Create a COMPLETE, PERFORMABLE puppet theater show in ${languageNames[this.language]} that can be ACTUALLY PERFORMED on stage.
+🎭 LENGTH REQUIREMENT (THIS IS MANDATORY):
+- MINIMUM dialogue lines: ${lengthSpec.min}
+- MAXIMUM dialogue lines: ${lengthSpec.max}
+- TARGET: Aim for ${lengthSpec.max} lines for a complete show
+- ⚠️ NEVER generate less than ${lengthSpec.min} lines - this is UNACCEPTABLE
 
-OUTPUT FORMAT (JSON only, no markdown):
+TASK: Create a COMPLETE, PERFORMABLE, FULL-LENGTH puppet theater show in ${languageNames[this.language]}.
+
+OUTPUT FORMAT (JSON only, no markdown, no code blocks):
 {
-  "title": "عنوان المسرحية بالـ ${this.language}",
+  "title": "عنوان المسرحية الكامل",
   "dialogue": [
-    {"puppet": "${puppet1.name}", "text": "ما تقوله الدمية", "action": "ما تفعله"},
-    {"puppet": "${puppet2.name}", "text": "الرد", "action": "الحركة المسرحية"},
-    ...
+    {"puppet": "${puppet1.name}", "text": "dialogue text", "action": "stage direction"},
+    {"puppet": "${puppet2.name}", "text": "dialogue text", "action": "stage direction"},
+    ... (continue for AT LEAST ${lengthSpec.min} lines)
   ]
 }
 
-CRITICAL REQUIREMENTS FOR A COMPLETE THEATRICAL SHOW:
-1. Write ENTIRELY in ${languageNames[this.language]} (${this.language})
-2. Age-appropriate language (6-12 years)
-3. Include DETAILED PHYSICAL ACTIONS for each line (يدخل من اليمين, يقفز, يجلس, ينظر للجمهور, etc.)
-4. COMPLETE THEATRICAL STRUCTURE:
-   - Opening/Introduction (3-5 lines)
-   - Rising Action/Development (main story body)
-   - Climax (turning point, 2-3 lines)
-   - Falling Action/Resolution (2-3 lines)
-   - Conclusion/Closing (2-3 lines)
-5. Story Type: ${storyTypeDesc}
-6. Make it ENGAGING, INTERACTIVE, and PERFORMABLE
-7. Total lines: MINIMUM ${lengthSpec.min}, TARGET ${lengthSpec.max}
-8. Each line MUST have both "text" (dialogue) and "action" (stage direction)
-9. The show should be READY TO PERFORM immediately - no editing needed
-10. Include stage directions like: يدخل, يخرج, يقف, يجلس, يلتفت, يبتسم, يبكي, etc.
+🎭 MANDATORY THEATRICAL STRUCTURE (DO NOT SKIP ANY PART):
 
-Generate the COMPLETE theatrical show now in pure JSON format:`;
+1️⃣ OPENING SCENE (5-8 lines):
+   - Puppets enter and greet each other
+   - Establish the setting and mood
+   - Introduce the main characters' personalities
+   - Set up the problem/adventure to come
+
+2️⃣ RISING ACTION (${Math.floor(lengthSpec.min * 0.4)}-${Math.floor(lengthSpec.max * 0.4)} lines):
+   - Develop the story gradually
+   - Build tension and interest
+   - Show character interactions
+   - Introduce challenges or conflicts
+   - Multiple scenes if needed
+
+3️⃣ CLIMAX (5-8 lines):
+   - The most exciting/important moment
+   - The main problem reaches its peak
+   - Critical decision or action
+
+4️⃣ FALLING ACTION (4-6 lines):
+   - Resolution begins
+   - Consequences of the climax
+   - Characters reflect on what happened
+
+5️⃣ CONCLUSION (3-5 lines):
+   - Clear ending with a message
+   - Characters say goodbye
+   - Leave audience with a positive feeling
+
+📏 LENGTH ENFORCEMENT RULES:
+- Count every single dialogue line in the "dialogue" array
+- If you have ${lengthSpec.min} lines minimum, you MUST write AT LEAST ${lengthSpec.min} lines
+- DO NOT stop at 3, 4, 5, or 10 lines - this is TOO SHORT
+- A complete show needs proper development, not just greetings
+- ⚠️ SHOWS WITH LESS THAN ${lengthSpec.min} LINES WILL BE REJECTED
+
+🎬 CONTENT REQUIREMENTS:
+1. Write ENTIRELY in ${languageNames[this.language]}
+2. Age-appropriate language (6-12 years)
+3. DETAILED stage directions: يدخل من اليمين، يقفز بفرح، يجلس حزيناً، ينظر للجمهور، يمسك بشيء، يركض، etc.
+4. Story type: ${storyTypeDesc}
+5. Make it ENGAGING, MEANINGFUL, and EDUCATIONAL
+6. Include emotional depth, not just simple greetings
+7. Each line MUST have both "text" (what puppet says) and "action" (what puppet does)
+8. The show must tell a COMPLETE STORY with beginning, middle, and end
+9. Include meaningful dialogue, not filler
+
+❌ UNACCEPTABLE OUTPUT:
+- Short greetings-only dialogues (4-5 lines) ❌
+- Incomplete stories ❌
+- Missing structure elements ❌
+- Dialogue shorter than ${lengthSpec.min} lines ❌
+- Repetitive or meaningless content ❌
+
+✅ WHAT IS EXPECTED:
+- A FULL theatrical show ready to perform ✅
+- Complete story arc with all 5 structural elements ✅
+- AT LEAST ${lengthSpec.min} meaningful dialogue lines ✅
+- Rich, engaging content throughout ✅
+- Clear educational or moral message ✅
+
+NOW GENERATE THE COMPLETE ${lengthSpec.min}-${lengthSpec.max} LINE THEATRICAL SHOW IN PURE JSON:`;
 
         return prompt;
     }
+
 
     /**
      * Extract emotional data from assessment
