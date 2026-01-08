@@ -79,7 +79,7 @@ class DialogueEngine {
     }
 
     /**
-     * Build comprehensive AI prompt based on assessment data
+     * Build comprehensive AI prompt - ENHANCED for complete theatrical dialogue
      */
     buildAIPrompt() {
         const puppet1 = this.puppets[0];
@@ -132,7 +132,7 @@ CONTEXT:
 - Script length: ${lengthSpec.min}-${lengthSpec.max} dialogue lines
 - Language: ${languageNames[this.language]} (${this.language})
 
-TASK: Create a complete, engaging puppet show dialogue in ${languageNames[this.language]}.
+TASK: Create a COMPLETE, PERFORMABLE puppet theater show in ${languageNames[this.language]} that can be ACTUALLY PERFORMED on stage.
 
 OUTPUT FORMAT (JSON only, no markdown):
 {
@@ -144,17 +144,24 @@ OUTPUT FORMAT (JSON only, no markdown):
   ]
 }
 
-CRITICAL REQUIREMENTS:
+CRITICAL REQUIREMENTS FOR A COMPLETE THEATRICAL SHOW:
 1. Write ENTIRELY in ${languageNames[this.language]} (${this.language})
 2. Age-appropriate language (6-12 years)
-3. Include PHYSICAL ACTIONS for each line (puppet movements)
-4. Clear story structure: beginning, middle, climax, resolution
-5. ${storyTypeDesc}
-6. Make it engaging and interactive
-7. Total lines: between ${lengthSpec.min} and ${lengthSpec.max}
-8. Each puppet line must have both "text" and "action"
+3. Include DETAILED PHYSICAL ACTIONS for each line (يدخل من اليمين, يقفز, يجلس, ينظر للجمهور, etc.)
+4. COMPLETE THEATRICAL STRUCTURE:
+   - Opening/Introduction (3-5 lines)
+   - Rising Action/Development (main story body)
+   - Climax (turning point, 2-3 lines)
+   - Falling Action/Resolution (2-3 lines)
+   - Conclusion/Closing (2-3 lines)
+5. Story Type: ${storyTypeDesc}
+6. Make it ENGAGING, INTERACTIVE, and PERFORMABLE
+7. Total lines: MINIMUM ${lengthSpec.min}, TARGET ${lengthSpec.max}
+8. Each line MUST have both "text" (dialogue) and "action" (stage direction)
+9. The show should be READY TO PERFORM immediately - no editing needed
+10. Include stage directions like: يدخل, يخرج, يقف, يجلس, يلتفت, يبتسم, يبكي, etc.
 
-Generate the complete show now in pure JSON format:`;
+Generate the COMPLETE theatrical show now in pure JSON format:`;
 
         return prompt;
     }
@@ -195,13 +202,13 @@ Generate the complete show now in pure JSON format:`;
     }
 
     /**
-     * Get length specifications
+     * Get length specifications - INCREASED for complete theatrical shows
      */
     getLengthSpecs() {
         const specs = {
-            'short': { min: 6, max: 10 },
-            'medium': { min: 12, max: 18 },
-            'long': { min: 20, max: 30 }
+            'short': { min: 15, max: 20 },    // Increased from 6-10
+            'medium': { min: 25, max: 35 },   // Increased from 12-18
+            'long': { min: 40, max: 55 }      // Increased from 20-30
         };
         return specs[this.length] || specs['medium'];
     }
