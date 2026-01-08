@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎭 الموجه المسرحي الذكي</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/dialogue-generator.css">
+    <style>
+        /* Specific overrides for Smart Dramaturg */
+        .stage-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .ai-response-area {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border: 2px dashed #cbd5e1;
+            min-height: 100px;
+            display: none;
+            /* Hidden by default */
+        }
+
+        .ai-response-area.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .script-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1rem;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .script-table th {
+            background: #6366f1;
+            color: white;
+            padding: 1rem;
+            text-align: right;
+        }
+
+        .script-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: white;
+            vertical-align: top;
+        }
+
+        .script-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .action-cell {
+            color: #d97706;
+            /* Amber for actions */
+            font-style: italic;
+            font-weight: 600;
+        }
+
+        .dialogue-cell {
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .character-cell {
+            font-weight: 700;
+            color: #6366f1;
+            width: 15%;
+        }
+
+        .values-feedback {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-top: 1rem;
+        }
+
+        .feedback-icon {
+            font-size: 2rem;
+            background: #e0e7ff;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .feedback-content h4 {
+            margin-bottom: 0.5rem;
+            color: #1e293b;
+        }
+
+        .system-prompt-box {
+            background: #1e293b;
+            color: #bef264;
+            font-family: monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            direction: ltr;
+            text-align: left;
+            display: none;
+            /* Toggle debugging */
+        }
+
+        .toggle-debug {
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-decoration: underline;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>الموجه المسرحي الذكي</span>
+            </div>
+            <div class="nav-right">
+                <span class="user-greeting">مرحباً, <strong id="userName">الطالب</strong></span>
+                <a href="dashboard.html" class="btn btn-outline btn-sm">العودة</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="generator-container">
+        <div class="generator-header">
+            <h1> ورشة الكتابة التفاعلية</h1>
+            <p class="subtitle">قم بقيادة الذكاء الاصطناعي لإنتاج مسرحيتك الخاصة خطوة بخطوة</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-step active" data-step="1">
+                <div class="step-circle">1</div>
+                <div class="step-label">مصنع الشخصيات</div>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">محرك الدراما</div>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">مدقق القيم</div>
+            </div>
+        </div>
+
+        <!-- Stage 1: Character Builder -->
+        <div id="stage1" class="form-step active">
+            <div class="stage-card">
+                <h2>🏗️ المرحلة 1: مصنع الشخصيات</h2>
+                <p class="step-description">لا تبدأ بالكتابة، بل بـ "هندسة" الشخصيات أولاً.</p>
+
+                <div class="question-group">
+                    <label class="question-label">اسم الدمية</label>
+                    <input type="text" id="charName" class="text-input" placeholder="مثال: ثعلوب">
+                </div>
+
+                <div class="question-group">
+                    <label class="question-label">الصفة البارزة</label>
+                    <input type="text" id="charTrait" class="text-input"
+                        placeholder="مثال: ماكر، صوته مبحوح، يمشي ببطء...">
+                </div>
+
+                <div class="question-group">
+                    <label class="question-label">الهدف (ماذا يريد؟)</label>
+                    <input type="text" id="charGoal" class="text-input" placeholder="مثال: يريد سرقة العسل من الخلية">
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button id="buildCharBtn" class="btn btn-primary btn-lg">✨ ابني الشخصية (AI)</button>
+                </div>
+
+                <!-- AI Output Area -->
+                <div id="charOutput" class="ai-response-area">
+                    <h3 style="color: #6366f1; margin-bottom: 1rem;">🧠 تحليل الذكاء الاصطناعي للشخصية:</h3>
+                    <div id="charDescriptionContent"></div>
+                    <span class="toggle-debug" onclick="toggleDebug('prompt1')">عرض الـ Prompt الهندسي</span>
+                    <div id="prompt1" class="system-prompt-box"></div>
+                </div>
+
+                <div class="form-navigation" style="justify-content: flex-end;">
+                    <button id="toStage2Btn" class="btn btn-outline" style="display: none;">التالي: كتابة المشهد
+                        ⬅️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 2: Dialogue & Action Engine -->
+        <div id="stage2" class="form-step">
+            <div class="stage-card">
+                <h2>🎬 المرحلة 2: محرك الحوار والحركة</h2>
+                <p class="step-description">الآن صف المشهد، وسيقوم الموجه الذكي بتحويله إلى نص مسرحي (كلام + حركة).</p>
+
+                <div class="question-group">
+                    <label class="question-label">صف ما يحدث في المشهد باختصار</label>
+                    <textarea id="sceneDescription" class="text-input" rows="4"
+                        placeholder="مثال: يحاول الثعلب إقناع الأرنب بالخروج من الجحر، لكن الأرنب يرفض خوفاً..."></textarea>
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button id="generateSceneBtn" class="btn btn-primary btn-lg">✨ اكتب المشهد (AI)</button>
+                </div>
+
+                <!-- AI Output Area -->
+                <div id="sceneOutput" class="ai-response-area">
+                    <h3 style="color: #6366f1; margin-bottom: 1rem;">📜 السيناريو المقترح:</h3>
+                    <div id="sceneTableContainer">
+                        <!-- Table will be injected here -->
+                    </div>
+                    <span class="toggle-debug" onclick="toggleDebug('prompt2')">عرض الـ Prompt الهندسي</span>
+                    <div id="prompt2" class="system-prompt-box"></div>
+                </div>
+
+                <div class="form-navigation" style="justify-content: space-between;">
+                    <button id="backToStage1" class="btn btn-outline">➡️ العودة للشخصيات</button>
+                    <button id="toStage3Btn" class="btn btn-outline" style="display: none;">التالي: تدقيق القيم
+                        ⬅️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 3: Values Checker -->
+        <div id="stage3" class="form-step">
+            <div class="stage-card">
+                <h2>💎 المرحلة 3: المدقق القيمي</h2>
+                <p class="step-description">لنتأكد من أن المسرحية تحمل رسالة إيجابية ومناسبة.</p>
+
+                <div style="text-align: center; margin: 2rem 0;">
+                    <button id="checkValuesBtn" class="btn btn-primary btn-lg">🔍 تحليل القيم والأخلاق</button>
+                </div>
+
+                <!-- AI Output Area -->
+                <div id="valuesOutput" class="ai-response-area">
+                    <h3 style="color: #6366f1; margin-bottom: 1rem;">📊 تقرير المدقق القيمي:</h3>
+                    <div id="valuesContent"></div>
+                    <span class="toggle-debug" onclick="toggleDebug('prompt3')">عرض الـ Prompt الهندسي</span>
+                    <div id="prompt3" class="system-prompt-box"></div>
+                </div>
+
+                <div class="form-navigation" style="justify-content: space-between;">
+                    <button id="backToStage2" class="btn btn-outline">➡️ العودة للمشهد</button>
+                    <button id="finishBtn" class="btn btn-primary" style="display: none;">💾 حفظ وإنهاء</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3 id="loadingText">جارٍ استدعاء الموجه المسرحي...</h3>
+            <p>يقوم الذكاء الاصطناعي الآن بالتفكير 🧠</p>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/gemini-service.js"></script>
+    <script src="../js/smart-dramaturg.js"></script>
+
+    <script>
+        function toggleDebug(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+
+</html>
