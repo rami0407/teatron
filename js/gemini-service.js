@@ -6,9 +6,10 @@ class GeminiService {
     constructor() {
         // [IMPORTANT] REPLACE 'YOUR_API_KEY' WITH YOUR ACTUAL GEMINI API KEY
         // You can get a key from: https://aistudio.google.com/app/apikey
-        this.apiKey = 'AIzaSyDonDKS6UDX94k5jZ7T36yIPunmx7tfxsk';
+        this.apiKey = 'AIzaSyBQ4ss64xGNjZzx9z3ZY7ffb5QrCKYXo7g';
 
-        this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+        // Using the standard gemini-pro endpoint (fallback)
+        this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
     }
 
     /**
