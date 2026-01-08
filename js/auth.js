@@ -1,5 +1,10 @@
 // Common Auth Helper Functions
 
+// Always scroll to top when page loads for better UX
+window.addEventListener('load', function () {
+    window.scrollTo(0, 0);
+});
+
 // Check if user is authenticated and redirect if not
 async function checkAuth(requiredRole = null) {
     return new Promise((resolve, reject) => {
