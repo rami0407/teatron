@@ -8,8 +8,8 @@ class GeminiService {
         // You can get a key from: https://aistudio.google.com/app/apikey
         this.apiKey = 'AIzaSyB4XP79Letx3FXbT2WQbi0dvYZznCODsn8';
 
-        // Using gemini-2.5-flash (confirmed available for this API key)
-        this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+        // Using gemini-2.0-flash (stable production model, less likely to be overloaded)
+        this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
     }
 
     /**
