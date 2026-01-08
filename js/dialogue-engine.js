@@ -1,5 +1,5 @@
-// Dialogue Engine - AI-Powered Dialogue Generation
-// Generates personalized puppet theatre dialogues based on student assessment
+// Dialogue Engine - AI-Powered Dialogue Generation (Groq Integration)
+// Generates personalized puppet theatre dialogues using Groq AI
 
 class DialogueEngine {
     constructor(assessmentData) {
@@ -11,689 +11,281 @@ class DialogueEngine {
     }
 
     async loadPuppets() {
-        // Check if we have puppet IDs or full puppet objects
-        const firstPuppet = this.assessment.puppets[0];
+        const puppetIds = this.assessment.puppets;
+        this.puppets = [];
 
-        // If puppets are already loaded objects (guest mode or Already loaded)
-        if (typeof firstPuppet === 'object' && firstPuppet.name) {
-            this.puppets = this.assessment.puppets;
-            return;
+        for (const id of puppetIds) {
+            try {
+                const puppetDoc = await db.collection('puppets').doc(id).get();
+                if (puppetDoc.exists) {
+                    this.puppets.push({
+                        id: id,
+                        ...puppetDoc.data()
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading puppet:', error);
+                // Fallback mock puppet if Firebase fails
+                this.puppets.push({
+                    id: id,
+                    name: `دمية ${id}`,
+                    description: 'شخصية مسرحية',
+                    category: 'animals'
+                });
+            }
         }
 
-        // Mock puppets for guest mode (fallback)
-        const mockPuppets = {
-            'lion': { id: 'lion', emoji: '🦁', name: 'الأسد', category: 'animals' },
-            'bear': { id: 'bear', emoji: '🐻', name: 'الدب', category: 'animals' },
-            'rabbit': { id: 'rabbit', emoji: '🐰', name: 'الأرنب', category: 'animals' },
-            'boy': { id: 'boy', emoji: '👦', name: 'الولد', category: 'family' },
-            'girl': { id: 'girl', emoji: '👧', name: 'البنت', category: 'family' },
-            'scientist': { id: 'scientist', emoji: '👨‍🔬', name: 'العالم', category: 'characters' },
-            'teacher': { id: 'teacher', emoji: '👨‍🏫', name: 'المعلم', category: 'characters' },
-            'astronaut': { id: 'astronaut', emoji: '👨‍🚀', name: 'رائد الفضاء', category: 'characters' }
-        };
-
-        // Try to load from Firestore if IDs are provided
-        if (typeof firstPuppet === 'string') {
-            try {
-                const puppetPromises = this.assessment.puppets.map(async (puppetId) => {
-                    // Try Firestore first
-                    try {
-                        const doc = await firebase.firestore().collection('puppets').doc(puppetId).get();
-                        if (doc.exists) {
-                            return { id: doc.id, ...doc.data() };
-                        }
-                    } catch (error) {
-                        console.log('Firestore not available, using mock data');
-                    }
-
-                    // Fallback to mock data
-                    return mockPuppets[puppetId] || mockPuppets['lion'];
-                });
-
-                this.puppets = await Promise.all(puppetPromises);
-            } catch (error) {
-                console.error('Error loading puppets:', error);
-                // Final fallback: use mock puppets
-                this.puppets = this.assessment.puppets.map(id => mockPuppets[id] || mockPuppets['lion']);
-            }
+        // Ensure at least one puppet
+        if (this.puppets.length === 0) {
+            this.puppets.push({
+                id: 'default',
+                name: 'الأرنب',
+                description: 'أرنب لطيف وذكي',
+                category: 'animals'
+            });
         }
     }
 
+    /**
+     * Main generation method - uses Groq AI
+     */
     async generate() {
         await this.loadPuppets();
 
-        // Select appropriate template based on assessment
-        const template = this.selectTemplate();
+        // Build AI prompt based on assessment
+        const prompt = this.buildAIPrompt();
 
-        // Generate dialogue
-        const dialogue = this.buildDialogue(template);
+        try {
+            // Call Groq AI
+            const aiResponse = await geminiAgent.generateContent(prompt);
 
-        return {
-            title: this.generateTitle(),
-            language: this.language,
-            puppets: this.puppets,
-            content: dialogue,
-            metadata: this.generateMetadata()
-        };
+            // Parse JSON response
+            const cleanedResponse = geminiAgent.cleanJson(aiResponse);
+            const dialogueData = JSON.parse(cleanedResponse);
+
+            return {
+                title: dialogueData.title || this.generateFallbackTitle(),
+                language: this.language,
+                puppets: this.puppets,
+                content: this.formatDialogue(dialogueData.dialogue),
+                metadata: this.generateMetadata()
+            };
+
+        } catch (error) {
+            console.error('AI Generation Error:', error);
+            // Fallback to simple dialogue if AI fails
+            return this.generateFallbackDialogue();
+        }
     }
 
-    selectTemplate() {
-        const { psychological, educational, behavioral } = this.assessment;
-
-        // Analyze student profile
-        const isConfident = psychological.confidence >= 4;
-        const isExtrovert = behavioral.introvert >= 4;
-        const isLeader = behavioral.leadership >= 4;
-        const favoritesTech = educational.favoriteSubjects.includes('science') ||
-            educational.favoriteSubjects.includes('technology');
-
-        // Select template based on story type and profile
-        const templateKey = `${this.storyType}_${this.language}`;
-
-        return this.getTemplateByType(templateKey, {
-            isConfident,
-            isExtrovert,
-            isLeader,
-            favoritesTech
-        });
-    }
-
-    getTemplateByType(key, profile) {
-        const templates = {
-            // ========================================
-            // ARABIC TEMPLATES
-            // ========================================
-            'educational_ar': {
-                theme: 'scientific_discovery',
-                setting: this.getArabicSetting(),
-                conflict: this.getArabicConflict(profile),
-                resolution: this.getArabicResolution(profile),
-                educationalMessage: this.getArabicEducationalMessage()
-            },
-            'comedy_ar': {
-                theme: 'funny_misunderstanding',
-                setting: 'في حديقة المدرسة',
-                conflict: this.getArabicComedyConflict(),
-                resolution: 'يحل المشكلة بطريقة مضحكة',
-                humorStyle: profile.isExtrovert ? 'slapstick' : 'wit'
-            },
-            'adventure_ar': {
-                theme: 'exciting_quest',
-                setting: this.getArabicAdventureSetting(),
-                conflict: 'رحلة مثيرة للبحث عن كنز',
-                resolution: profile.isLeader ? 'يقود المجموعة للنجاح' : 'يساعد في إيجاد الحل',
-                excitement: 'high'
-            },
-            'moral_ar': {
-                theme: 'ethical_lesson',
-                setting: 'في مدرسة أو بيت',
-                conflict: this.getArabicMoralConflict(),
-                resolution: this.getArabicMoralResolution(),
-                moralLesson: this.getArabicMoralLesson()
-            },
-
-            // ========================================
-            // HEBREW TEMPLATES
-            // ========================================
-            'educational_he': {
-                theme: 'scientific_discovery',
-                setting: this.getHebrewSetting(),
-                conflict: this.getHebrewConflict(profile),
-                resolution: this.getHebrewResolution(profile),
-                educationalMessage: this.getHebrewEducationalMessage()
-            },
-            'comedy_he': {
-                theme: 'funny_misunderstanding',
-                setting: 'בגן בית הספר',
-                conflict: this.getHebrewComedyConflict(),
-                resolution: 'פותר את הבעיה בצורה מצחיקה',
-                humorStyle: profile.isExtrovert ? 'slapstick' : 'wit'
-            },
-            'adventure_he': {
-                theme: 'exciting_quest',
-                setting: this.getHebrewAdventureSetting(),
-                conflict: 'מסע מרגש לחיפוש אוצר',
-                resolution: profile.isLeader ? 'מוביל את הקבוצה להצלחה' : 'עוזר למצוא את הפתרון',
-                excitement: 'high'
-            },
-            'moral_he': {
-                theme: 'ethical_lesson',
-                setting: 'בבית הספר או בבית',
-                conflict: this.getHebrewMoralConflict(),
-                resolution: this.getHebrewMoralResolution(),
-                moralLesson: this.getHebrewMoralLesson()
-            },
-
-            // ========================================
-            // ENGLISH TEMPLATES
-            // ========================================
-            'educational_en': {
-                theme: 'scientific_discovery',
-                setting: this.getEnglishSetting(),
-                conflict: this.getEnglishConflict(profile),
-                resolution: this.getEnglishResolution(profile),
-                educationalMessage: this.getEnglishEducationalMessage()
-            },
-            'comedy_en': {
-                theme: 'funny_misunderstanding',
-                setting: 'in the school playground',
-                conflict: this.getEnglishComedyConflict(),
-                resolution: 'solves the problem in a funny way',
-                humorStyle: profile.isExtrovert ? 'slapstick' : 'wit'
-            },
-            'adventure_en': {
-                theme: 'exciting_quest',
-                setting: this.getEnglishAdventureSetting(),
-                conflict: 'an exciting journey to find treasure',
-                resolution: profile.isLeader ? 'leads the group to success' : 'helps find the solution',
-                excitement: 'high'
-            },
-            'moral_en': {
-                theme: 'ethical_lesson',
-                setting: 'at school or home',
-                conflict: this.getEnglishMoralConflict(),
-                resolution: this.getEnglishMoralResolution(),
-                moralLesson: this.getEnglishMoralLesson()
-            }
-        };
-
-        return templates[key] || templates[`educational_${this.language}`];
-    }
-
-    buildDialogue(template) {
-        const lineCount = this.getLineCount();
+    /**
+     * Build comprehensive AI prompt based on assessment data
+     */
+    buildAIPrompt() {
         const puppet1 = this.puppets[0];
-        const puppet2 = this.puppets[1] || puppet1; // Monologue if only one puppet
+        const puppet2 = this.puppets[1] || puppet1;
 
-        let dialogue = [];
+        // Extract meaningful assessment data
+        const emotions = this.extractEmotions();
+        const preferences = this.extractPreferences();
+        const lengthSpec = this.getLengthSpecs();
 
-        // Introduction
-        dialogue.push(...this.generateIntroduction(puppet1, puppet2, template));
+        const languageNames = {
+            'ar': 'Arabic',
+            'he': 'Hebrew',
+            'en': 'English'
+        };
 
-        // Development
-        dialogue.push(...this.generateDevelopment(puppet1, puppet2, template, lineCount));
-
-        // Climax
-        dialogue.push(...this.generateClimax(puppet1, puppet2, template));
-
-        // Resolution
-        dialogue.push(...this.generateResolution(puppet1, puppet2, template));
-
-        // Conclusion
-        dialogue.push(...this.generateConclusion(puppet1, puppet2, template));
-
-        return this.formatDialogue(dialogue);
-    }
-
-    generateIntroduction(p1, p2, template) {
-        const lines = [];
-        const isTwoPuppets = this.puppets.length === 2;
-
-        if (this.language === 'ar') {
-            lines.push({ puppet: p1.name, line: `مرحباً! أنا ${p1.name}. ${template.setting}` });
-            if (isTwoPuppets) {
-                lines.push({ puppet: p2.name, line: `وأنا ${p2.name}! سعيد بلقائك.` });
-            }
-        } else if (this.language === 'he') {
-            lines.push({ puppet: p1.name, line: `שלום! אני ${p1.name}. ${template.setting}` });
-            if (isTwoPuppets) {
-                lines.push({ puppet: p2.name, line: `ואני ${p2.name}! שמח לפגוש אותך.` });
-            }
-        } else {
-            lines.push({ puppet: p1.name, line: `Hello! I'm ${p1.name}. ${template.setting}` });
-            if (isTwoPuppets) {
-                lines.push({ puppet: p2.name, line: `And I'm ${p2.name}! Nice to meet you.` });
-            }
-        }
-
-        return lines;
-    }
-
-    generateDevelopment(p1, p2, template, targetLines) {
-        const lines = [];
-        const developmentLines = Math.floor(targetLines * 0.4);
-        const isTwoPuppets = this.puppets.length === 2;
-
-        // Generate dialogue based on story type and student profile
-        for (let i = 0; i < developmentLines; i++) {
-            const speaker = i % 2 === 0 ? p1 : (isTwoPuppets ? p2 : p1);
-            const line = this.generateDevelopmentLine(speaker, template, i);
-            lines.push({ puppet: speaker.name, line });
-        }
-
-        return lines;
-    }
-
-    generateDevelopmentLine(puppet, template, index) {
-        const { psychological, educational, behavioral } = this.assessment;
-        const topic = educational.scienceTopic;
-
-        // Generate context-aware lines
-        if (this.storyType === 'educational' && topic) {
-            return this.generateEducationalLine(puppet, topic, index);
-        } else if (this.storyType === 'comedy') {
-            return this.generateComedyLine(puppet, index);
-        } else if (this.storyType === 'adventure') {
-            return this.generateAdventureLine(puppet, index);
-        } else {
-            return this.generateMoralLine(puppet, index);
-        }
-    }
-
-    generateEducationalLine(puppet, topic, index) {
-        const educationalContent = {
-            ar: {
-                space: [
-                    'هل تعلم أن الشمس نجم ضخم؟',
-                    'الكواكب تدور حول الشمس!',
-                    'القمر يدور حول الأرض.',
-                    'في الفضاء لا يوجد هواء للتنفس.'
-                ],
-                animals: [
-                    'الحيوانات تحتاج للماء والطعام.',
-                    'بعض الحيوانات تأكل النباتات فقط.',
-                    'الحيوانات المفترسة تصطاد لتأكل.',
-                    'كل حيوان له بيئة خاصة يعيش فيها.'
-                ],
-                water_cycle: [
-                    'الماء يتبخر من البحار والأنهار.',
-                    'البخار يصعد للسماء ويكوّن الغيوم.',
-                    'عندما تبرد الغيوم، تمطر!',
-                    'المطر يعود للأنهار مرة أخرى.'
-                ]
+        const storyTypeDescriptions = {
+            'educational': {
+                'ar': 'تعليمي يعلم الأطفال مهارة أو معلومة',
+                'he': 'חינוכי המלמד ילדים מיומנות או ידע',
+                'en': 'Educational teaching children a skill or knowledge'
             },
-            he: {
-                space: [
-                    'האם ידעת שהשמש היא כוכב ענק?',
-                    'כלכבים מסתובבים סביב השמש!',
-                    'הירח מסתובב סביב הארץ.',
-                    'בחלל אין אוויר לנשימה.'
-                ],
-                animals: [
-                    'חיות צריכות מים ואוכל.',
-                    'חיות מסוימות אוכלות רק צמחים.',
-                    'חיות טורפות צדות כדי לאכול.',
-                    'לכל חיה יש סביבה מיוחדת שבה היא חיה.'
-                ]
+            'comedy': {
+                'ar': 'كوميدي مضحك ومسلّي',
+                'he': 'קומדיה מצחיקה ומשעה',
+                'en': 'Funny and entertaining comedy'
             },
-            en: {
-                space: [
-                    'Did you know the Sun is a huge star?',
-                    'Planets orbit around the Sun!',
-                    'The Moon orbits around Earth.',
-                    'There is no air to breathe in space.'
-                ],
-                animals: [
-                    'Animals need water and food.',
-                    'Some animals only eat plants.',
-                    'Predators hunt for their food.',
-                    'Each animal has a special habitat.'
-                ]
+            'adventure': {
+                'ar': 'مغامرة مشوقة ومثيرة',
+                'he': 'הרפתקה מרגשת',
+                'en': 'Exciting adventure'
+            },
+            'moral': {
+                'ar': 'أخلاقي يعلّم قيمة إنسانية',
+                'he': 'מוסרי המלמד ערך אנושי',
+                'en': 'Moral teaching human values'
             }
         };
 
-        const topicLines = educationalContent[this.language][topic] || educationalContent[this.language].space;
-        return topicLines[index % topicLines.length];
+        const storyTypeDesc = storyTypeDescriptions[this.storyType][this.language] || storyTypeDescriptions[this.storyType]['ar'];
+
+        const prompt = `You are an expert puppet theater script writer for children aged 6-12.
+
+CONTEXT:
+- Student emotional state: ${emotions}
+- Student preferences: ${preferences}
+- Puppet 1: ${puppet1.name} (${puppet1.description || 'puppet character'})
+- Puppet 2: ${puppet2.name} (${puppet2.description || 'puppet character'})
+- Story type: ${storyTypeDesc}
+- Script length: ${lengthSpec.min}-${lengthSpec.max} dialogue lines
+- Language: ${languageNames[this.language]} (${this.language})
+
+TASK: Create a complete, engaging puppet show dialogue in ${languageNames[this.language]}.
+
+OUTPUT FORMAT (JSON only, no markdown):
+{
+  "title": "عنوان المسرحية بالـ ${this.language}",
+  "dialogue": [
+    {"puppet": "${puppet1.name}", "text": "ما تقوله الدمية", "action": "ما تفعله"},
+    {"puppet": "${puppet2.name}", "text": "الرد", "action": "الحركة المسرحية"},
+    ...
+  ]
+}
+
+CRITICAL REQUIREMENTS:
+1. Write ENTIRELY in ${languageNames[this.language]} (${this.language})
+2. Age-appropriate language (6-12 years)
+3. Include PHYSICAL ACTIONS for each line (puppet movements)
+4. Clear story structure: beginning, middle, climax, resolution
+5. ${storyTypeDesc}
+6. Make it engaging and interactive
+7. Total lines: between ${lengthSpec.min} and ${lengthSpec.max}
+8. Each puppet line must have both "text" and "action"
+
+Generate the complete show now in pure JSON format:`;
+
+        return prompt;
     }
 
-    generateComedyLine(puppet, index) {
-        const comedyLines = {
-            ar: [
-                'ماذا؟! هذا غريب جداً!',
-                'هههه، هذا مضحك!',
-                'انتظر، دعني أفكر...',
-                'يا للمفاجأة!'
-            ],
-            he: [
-                'מה?! זה מוזר מאוד!',
-                'חחח, זה מצחיק!',
-                'רגע, תן לי לחשוב...',
-                'איזו הפתעה!'
-            ],
-            en: [
-                'What?! That\'s so strange!',
-                'Haha, that\'s funny!',
-                'Wait, let me think...',
-                'What a surprise!'
-            ]
-        };
+    /**
+     * Extract emotional data from assessment
+     */
+    extractEmotions() {
+        const emotions = [];
+        const assessment = this.assessment.assessment;
 
-        const lines = comedyLines[this.language];
-        return lines[index % lines.length];
+        if (assessment) {
+            if (assessment.mood) emotions.push(`mood: ${assessment.mood}`);
+            if (assessment.energy) emotions.push(`energy: ${assessment.energy}`);
+            if (assessment.confidence) emotions.push(`confidence: ${assessment.confidence}`);
+        }
+
+        return emotions.length > 0 ? emotions.join(', ') : 'positive and curious';
     }
 
-    generateAdventureLine(puppet, index) {
-        const adventureLines = {
-            ar: [
-                'يجب أن نكون شجعاناً!',
-                'ماذا نفعل الآن؟',
-                'هيا بنا، لا وقت للتأخير!',
-                'أشعر بالقلق قليلاً.'
-            ],
-            he: [
-                'אנחנו צריכים להיות אמיצים!',
-                'מה נעשה עכשיו?',
-                'בוא, אין זמן להתעכב!',
-                'אני מעט מודאג.'
-            ],
-            en: [
-                'We must be brave!',
-                'What should we do now?',
-                'Come on, no time to waste!',
-                'I\'m a little worried.'
-            ]
-        };
+    /**
+     * Extract preference data
+     */
+    extractPreferences() {
+        const prefs = [];
+        const assessment = this.assessment.assessment;
 
-        const lines = adventureLines[this.language];
-        return lines[index % lines.length];
-    }
-
-    generateMoralLine(puppet, index) {
-        const moralLines = {
-            ar: [
-                'يجب أن نكون صادقين دائماً.',
-                'مساعدة الآخرين شيء رائع!',
-                'الصداقة كنز ثمين.',
-                'يجب احترام الجميع.'
-            ],
-            he: [
-                'אנחנו צריכים תמיד להיות כנים.',
-                'לעזור לאחרים זה נפלא!',
-                'חברות היא אוצר יקר.',
-                'צריך לכבד את כולם.'
-            ],
-            en: [
-                'We must always be honest.',
-                'Helping others is wonderful!',
-                'Friendship is a precious treasure.',
-                'We should respect everyone.'
-            ]
-        };
-
-        const lines = moralLines[this.language];
-        return lines[index % lines.length];
-    }
-
-    generateClimax(p1, p2, template) {
-        const lines = [];
-
-        if (this.language === 'ar') {
-            lines.push({ puppet: p1.name, line: 'هذه هي اللحظة الحاسمة!' });
-            if (this.puppets.length === 2) {
-                lines.push({ puppet: p2.name, line: 'نعم! يجب أن نعمل معاً!' });
+        if (assessment) {
+            if (assessment.topics && assessment.topics.length > 0) {
+                prefs.push(`interests: ${assessment.topics.join(', ')}`);
             }
-        } else if (this.language === 'he') {
-            lines.push({ puppet: p1.name, line: 'זה הרגע המכריע!' });
-            if (this.puppets.length === 2) {
-                lines.push({ puppet: p2.name, line: 'כן! אנחנו צריכים לעבוד ביחד!' });
-            }
-        } else {
-            lines.push({ puppet: p1.name, line: 'This is the crucial moment!' });
-            if (this.puppets.length === 2) {
-                lines.push({ puppet: p2.name, line: 'Yes! We must work together!' });
+            if (assessment.favoriteActivities && assessment.favoriteActivities.length > 0) {
+                prefs.push(`activities: ${assessment.favoriteActivities.join(', ')}`);
             }
         }
 
-        return lines;
+        return prefs.length > 0 ? prefs.join('; ') : 'storytelling and creativity';
     }
 
-    generateResolution(p1, p2, template) {
-        const lines = [];
+    /**
+     * Get length specifications
+     */
+    getLengthSpecs() {
+        const specs = {
+            'short': { min: 6, max: 10 },
+            'medium': { min: 12, max: 18 },
+            'long': { min: 20, max: 30 }
+        };
+        return specs[this.length] || specs['medium'];
+    }
 
-        if (this.language === 'ar') {
-            lines.push({ puppet: p1.name, line: template.resolution || 'نجحنا في حل المشكلة!' });
-            if (this.puppets.length === 2) {
-                lines.push({ puppet: p2.name, line: 'رائع! تعلمنا شيئاً مهماً اليوم.' });
-            }
-        } else if (this.language === 'he') {
-            lines.push({ puppet: p1.name, line: template.resolution || 'הצלחנו לפתור את הבעיה!' });
-            if (this.puppets.length === 2) {
-                lines.push({ puppet: p2.name, line: 'נהדר! למדנו משהו חשוב היום.' });
-            }
-        } else {
-            lines.push({ puppet: p1.name, line: template.resolution || 'We solved the problem!' });
-            if (this.puppets.length === 2) {
-                lines.push({ puppet: p2.name, line: 'Great! We learned something important today.' });
-            }
+    /**
+     * Format dialogue array
+     */
+    formatDialogue(dialogueArray) {
+        if (!Array.isArray(dialogueArray)) {
+            console.error('Invalid dialogue format');
+            return [];
         }
 
-        return lines;
-    }
-
-    generateConclusion(p1, p2, template) {
-        const lines = [];
-
-        if (this.language === 'ar') {
-            lines.push({ puppet: p1.name, line: 'شكراً لكم على المشاهدة!' });
-            if (this.puppets.length === 2) {
-                lines.push({ puppet: p2.name, line: 'إلى اللقاء!' });
-            }
-        } else if (this.language === 'he') {
-            lines.push({ puppet: p1.name, line: 'תודה שצפיתם!' });
-            if (this.puppets.length === 2) {
-                lines.push({ puppet: p2.name, line: 'להתראות!' });
-            }
-        } else {
-            lines.push({ puppet: p1.name, line: 'Thank you for watching!' });
-            if (this.puppets.length === 2) {
-                lines.push({ puppet: p2.name, line: 'Goodbye!' });
-            }
-        }
-
-        return lines;
-    }
-
-    formatDialogue(lines) {
-        return lines.map(({ puppet, line }) => ({
-            speaker: puppet,
-            text: line
+        return dialogueArray.map(line => ({
+            speaker: line.puppet || 'دمية',
+            text: line.text || '',
+            action: line.action || ''
         }));
     }
 
-    getLineCount() {
-        const counts = {
-            short: 10,
-            medium: 20,
-            long: 35
-        };
-        return counts[this.length] || 20;
-    }
-
-    generateTitle() {
-        if (this.assessment.settings.title) {
-            return this.assessment.settings.title;
-        }
-
-        const titles = {
-            ar: {
-                educational: 'رحلة تعليمية مثيرة',
-                comedy: 'مغامرة مضحكة',
-                adventure: 'مغامرة شيقة',
-                moral: 'درس في القيم'
-            },
-            he: {
-                educational: 'מסע לימודי מרגש',
-                comedy: 'הרפתקה מצחיקה',
-                adventure: 'הרפתקה מרתקת',
-                moral: 'שיעור בערכים'
-            },
-            en: {
-                educational: 'An Exciting Learning Journey',
-                comedy: 'A Funny Adventure',
-                adventure: 'An Exciting Quest',
-                moral: 'A Lesson in Values'
-            }
-        };
-
-        return titles[this.language][this.storyType];
-    }
-
+    /**
+     * Generate metadata
+     */
     generateMetadata() {
         return {
-            gradeLevel: this.assessment.educational.grade,
-            topics: this.assessment.educational.favoriteSubjects,
-            personalityProfile: {
-                confidence: this.assessment.psychological.confidence,
-                social: this.assessment.behavioral.introvert,
-                leadership: this.assessment.behavioral.leadership
+            generationType: 'ai-powered',
+            engine: 'groq-llama-3.3',
+            timestamp: Date.now(),
+            language: this.language,
+            storyType: this.storyType,
+            puppetCount: this.puppets.length
+        };
+    }
+
+    /**
+     * Fallback title generation
+     */
+    generateFallbackTitle() {
+        const puppet1Name = this.puppets[0]?.name || 'الدمية';
+        const titles = {
+            'ar': `مغامرة ${puppet1Name}`,
+            'he': `ההרפתקה של ${puppet1Name}`,
+            'en': `${puppet1Name}'s Adventure`
+        };
+        return titles[this.language] || titles['ar'];
+    }
+
+    /**
+     * Fallback dialogue if AI fails
+     */
+    generateFallbackDialogue() {
+        const puppet1 = this.puppets[0];
+        const puppet2 = this.puppets[1] || puppet1;
+
+        const fallbackLines = {
+            'ar': [
+                { speaker: puppet1.name, text: `مرحباً! أنا ${puppet1.name}!`, action: 'يلوّح بيده' },
+                { speaker: puppet2.name, text: `وأنا ${puppet2.name}! كيف حالك؟`, action: 'يقفز فرحاً' },
+                { speaker: puppet1.name, text: 'أنا بخير! هل تريد أن نلعب معاً؟', action: 'يبتسم' },
+                { speaker: puppet2.name, text: 'فكرة رائعة! لنذهب في مغامرة!', action: 'يركض' }
+            ],
+            'he': [
+                { speaker: puppet1.name, text: `!שלום! אני ${puppet1.name}`, action: 'מנופף ביד' },
+                { speaker: puppet2.name, text: `!ואני ${puppet2.name}! מה שלומך?`, action: 'קופץ בשמחה' },
+                { speaker: puppet1.name, text: '?אני בסדר! רוצה לשחק ביחד', action: 'מחייך' },
+                { speaker: puppet2.name, text: '!רעיון מעולה! בואו נצא להרפתקה', action: 'רץ' }
+            ],
+            'en': [
+                { speaker: puppet1.name, text: `Hello! I'm ${puppet1.name}!`, action: 'waves hand' },
+                { speaker: puppet2.name, text: `And I'm ${puppet2.name}! How are you?`, action: 'jumps happily' },
+                { speaker: puppet1.name, text: 'I\'m good! Want to play together?', action: 'smiles' },
+                { speaker: puppet2.name, text: 'Great idea! Let\'s go on an adventure!', action: 'runs' }
+            ]
+        };
+
+        return {
+            title: this.generateFallbackTitle(),
+            language: this.language,
+            puppets: this.puppets,
+            content: fallbackLines[this.language] || fallbackLines['ar'],
+            metadata: {
+                ...this.generateMetadata(),
+                generationType: 'fallback'
             }
         };
     }
-
-    // Helper methods for getting context-specific content
-    getArabicSetting() {
-        const topics = this.assessment.educational.scienceTopic;
-        const settings = {
-            space: 'في محطة فضائية',
-            animals: 'في الغابة',
-            water_cycle: 'بجانب النهر',
-            plants: 'في حديقة جميلة'
-        };
-        return settings[topics] || 'في مكان مثير';
-    }
-
-    getArabicConflict(profile) {
-        if (profile.isLeader) {
-            return 'يجب قيادة المجموعة لحل المشكلة';
-        }
-        return 'يجب التعاون لإيجاد الحل';
-    }
-
-    getArabicResolution(profile) {
-        if (profile.isConfident) {
-            return 'يحل المشكلة بثقة وذكاء';
-        }
-        return 'يتعلم ويكتسب الثقة';
-    }
-
-    getArabicEducationalMessage() {
-        const topic = this.assessment.educational.scienceTopic;
-        const messages = {
-            space: 'الفضاء مليء بالعجائب!',
-            animals: 'كل حيوان مميز بطريقته!',
-            water_cycle: 'الماء أساس الحياة!'
-        };
-        return messages[topic] || 'العلم ممتع ومفيد!';
-    }
-
-    getArabicComedyConflict() {
-        return 'سوء فهم مضحك يحدث';
-    }
-
-    getArabicAdventureSetting() {
-        return 'في رحلة استكشافية مثيرة';
-    }
-
-    getArabicMoralConflict() {
-        return 'موقف يتطلب اتخاذ قرار أخلاقي';
-    }
-
-    getArabicMoralResolution() {
-        return 'يتخذ القرار الصحيح';
-    }
-
-    getArabicMoralLesson() {
-        return 'الصدق والأمانة أساس النجاح';
-    }
-
-    // Hebrew helpers
-    getHebrewSetting() {
-        const topics = this.assessment.educational.scienceTopic;
-        const settings = {
-            space: 'בתחנת חלל',
-            animals: 'ביער',
-            water_cycle: 'ליד הנהר'
-        };
-        return settings[topics] || 'במקום מרגש';
-    }
-
-    getHebrewConflict(profile) {
-        if (profile.isLeader) {
-            return 'צריך להוביל את הקבוצה לפתור את הבעיה';
-        }
-        return 'צריך לשתף פעולה כדי למצוא פתרון';
-    }
-
-    getHebrewResolution(profile) {
-        if (profile.isConfident) {
-            return 'פותר את הבעיה בביטחון ובחוכמה';
-        }
-        return 'לומד ומקבל ביטחון';
-    }
-
-    getHebrewEducationalMessage() {
-        return 'המדע מהנה ושימושי!';
-    }
-
-    getHebrewComedyConflict() {
-        return 'אי הבנה מצחיקה קורית';
-    }
-
-    getHebrewAdventureSetting() {
-        return 'במסע גילוי מרגש';
-    }
-
-    getHebrewMoralConflict() {
-        return 'מצב הדורש קבלת החלטה מוסרית';
-    }
-
-    getHebrewMoralResolution() {
-        return 'מקבל את ההחלטה הנכונה';
-    }
-
-    getHebrewMoralLesson() {
-        return 'כנות ויושר הם בסיס להצלחה';
-    }
-
-    // English helpers
-    getEnglishSetting() {
-        const topics = this.assessment.educational.scienceTopic;
-        const settings = {
-            space: 'at a space station',
-            animals: 'in the forest',
-            water_cycle: 'by the river'
-        };
-        return settings[topics] || 'in an exciting place';
-    }
-
-    getEnglishConflict(profile) {
-        if (profile.isLeader) {
-            return 'must lead the group to solve the problem';
-        }
-        return 'must cooperate to find a solution';
-    }
-
-    getEnglishResolution(profile) {
-        if (profile.isConfident) {
-            return 'solves the problem with confidence and wisdom';
-        }
-        return 'learns and gains confidence';
-    }
-
-    getEnglishEducationalMessage() {
-        return 'Science is fun and useful!';
-    }
-
-    getEnglishComedyConflict() {
-        return 'a funny misunderstanding happens';
-    }
-
-    getEnglishAdventureSetting() {
-        return 'on an exciting exploration';
-    }
-
-    getEnglishMoralConflict() {
-        return 'a situation requiring an ethical decision';
-    }
-
-    getEnglishMoralResolution() {
-        return 'makes the right choice';
-    }
-
-    getEnglishMoralLesson() {
-        return 'Honesty and integrity are the foundation of success';
-    }
 }
-
-// Export for use in dialogue-editor.js
-window.DialogueEngine = DialogueEngine;
