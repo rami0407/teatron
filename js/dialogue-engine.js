@@ -206,9 +206,9 @@ Generate the COMPLETE theatrical show now in pure JSON format:`;
      */
     getLengthSpecs() {
         const specs = {
-            'short': { min: 15, max: 20 },    // Increased from 6-10
-            'medium': { min: 25, max: 35 },   // Increased from 12-18
-            'long': { min: 40, max: 55 }      // Increased from 20-30
+            'short': { min: 25, max: 35 },    // User requested: 25-35
+            'medium': { min: 36, max: 55 },   // User requested: 36-55
+            'long': { min: 56, max: 100 }     // User requested: 56-100
         };
         return specs[this.length] || specs['medium'];
     }
