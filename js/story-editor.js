@@ -218,7 +218,7 @@ let originalContentStore = "";
 // AI Script Converter & Enhancer (Advanced Multi-Language)
 // ==========================================
 
-function analyzeStoryAI() {
+async function analyzeStoryAI() {
     const textarea = document.getElementById('storyContent');
     const modal = document.getElementById('aiModal');
     const list = document.getElementById('aiSuggestionsList');
@@ -235,15 +235,15 @@ function analyzeStoryAI() {
     const personas = {
         'ar': {
             name: 'معلم اللغة العربية 👳‍♂️',
-            msg: 'جاري تدقيق النص وتصحيح الأخطاء النحوية والإملائية...'
+            msg: 'جاري تدقيق النص وتصحيح الأخطاء النحوية والإملائية... (باستخدام Groq AI)'
         },
         'en': {
             name: 'English Teacher 👩‍🏫',
-            msg: 'Reviewing your text for grammar and spelling errors...'
+            msg: 'Reviewing your text with AI for grammar and spelling errors...'
         },
         'he': {
             name: 'מורה לעברית 👨‍🏫',
-            msg: 'בודק את הטקסט לשגיאות כתיב ודקדוק...'
+            msg: 'בודק את הטקסט עם AI לשגיאות כתיב ודקדוק...'
         }
     };
     const persona = personas[lang] || personas['ar'];
@@ -258,16 +258,16 @@ function analyzeStoryAI() {
         </div>
     `;
 
-    // Simulate thinking time
-    setTimeout(() => {
+    // AI Processing with async/await
+    try {
         // 1. Fix Spelling & Grammar based on Language
-        let fixedText = fixSpelling(originalText, lang);
+        const fixedText = await fixSpelling(originalText, lang);
 
         // 2. Convert to Script (Structure) - adapted for language
-        let scriptText = convertToScript(fixedText, lang);
+        const scriptText = await convertToScript(fixedText, lang);
 
         // 3. Develop & Expand
-        let finalText = developStory(scriptText, lang);
+        const finalText = await developStory(scriptText, lang);
 
         proposedGlobalChange = finalText;
 
@@ -275,21 +275,21 @@ function analyzeStoryAI() {
         let insights = "";
         if (lang === 'ar') {
             insights = `
-                <li>✅ <strong>تصحيح الإملاء:</strong> تم تدقيق الهمزات والتاء المربوطة.</li>
+                <li>✅ <strong>تصحيح الإملاء:</strong> تم تدقيق الهمزات والتاء المربوطة (بواسطة Groq AI).</li>
                 <li>🎭 <strong>تنسيق مسرحي:</strong> حولت القصة إلى حوار منظم.</li>
-                <li>✨ <strong>تحسين الأسلوب:</strong> أضفت مفردات أكثر دقة.</li>
+                <li>✨ <strong>تحسين الأسلوب:</strong> أضفت مفردات أكثر دقة وتفاصيل حسية.</li>
             `;
         } else if (lang === 'en') {
             insights = `
-                <li>✅ <strong>Grammar Check:</strong> Corrected capitalization and punctuation.</li>
+                <li>✅ <strong>Grammar Check:</strong> Corrected spelling and punctuation (via Groq AI).</li>
                 <li>🎭 <strong>Script Format:</strong> Converted to dialogue format.</li>
-                <li>✨ <strong>Style:</strong> Enhanced vocabulary and flow.</li>
+                <li>✨ <strong>Style:</strong> Enhanced vocabulary and added sensory details.</li>
             `;
         } else {
             insights = `
-                <li>✅ <strong>תיקון כתיב:</strong> תוקנו שגיאות כתיב ופיסוק.</li>
+                <li>✅ <strong>תיקון כתיב:</strong> תוקנו שגיאות כתיב ופיסוק (באמצעות Groq AI).</li>
                 <li>🎭 <strong>פורמט תסריט:</strong> הפכתי את הסיפור לדיאלוג.</li>
-                <li>✨ <strong>סגנון:</strong> שיפרתי את אוצר המילים.</li>
+                <li>✨ <strong>סגנון:</strong> שיפרתי את אוצר המילים והוספתי תיאורים חושיים.</li>
             `;
         }
 
@@ -327,7 +327,15 @@ function analyzeStoryAI() {
                 </div>
             </div>
         `;
-    }, 2000);
+    } catch (error) {
+        console.error('AI Analysis Error:', error);
+        list.innerHTML = `
+            <div class="suggestion-item" style="text-align:center; background:#fff5f5;">
+                <div class="suggestion-text" style="color:#c53030;">⚠️ حدث خطأ في معالجة الذكاء الاصطناعي.</div>
+                <div class="suggestion-text" style="font-size:0.85rem; color:#666;">${error.message}</div>
+            </div>
+        `;
+    }
 }
 
 function detectLanguage(text) {
@@ -340,12 +348,40 @@ function detectLanguage(text) {
 }
 
 // ---------------------------------------------------------
-// 1. Spelling Corrector (Multi-Language)
+// 1. Spelling Corrector (Multi-Language) - POWERED BY GROQ AI
 // ---------------------------------------------------------
-function fixSpelling(text, lang) {
-    if (lang === 'en') return fixSpellingEnglish(text);
-    if (lang === 'he') return fixSpellingHebrew(text);
-    return fixSpellingArabic(text);
+async function fixSpelling(text, lang) {
+    const languageNames = {
+        'ar': 'Arabic',
+        'he': 'Hebrew',
+        'en': 'English'
+    };
+
+    const prompt = `You are an expert ${languageNames[lang]} language teacher.
+
+Task: Fix ALL spelling, grammar, and punctuation errors in this ${languageNames[lang]} text for children aged 6-12.
+
+Original Text:
+${text}
+
+Rules:
+1. Fix spelling errors
+2. Fix grammar mistakes
+3. Fix punctuation
+4. Keep the same meaning and style
+5. Use age-appropriate language (6-12 years)
+6. Output ONLY the corrected text, nothing else
+7. Do NOT add explanations
+
+Corrected Text:`;
+
+    try {
+        const corrected = await geminiAgent.generateContent(prompt);
+        return corrected.trim();
+    } catch (error) {
+        console.error('AI Spell Check Error:', error);
+        return text; // Return original if AI fails
+    }
 }
 
 function fixSpellingArabic(text) {
@@ -445,41 +481,42 @@ function fixSpellingHebrew(text) {
 }
 
 // ---------------------------------------------------------
-// 2. Story Developer (Multi-Language)
+// 2. Story Developer (Multi-Language) - POWERED BY GROQ AI
 // ---------------------------------------------------------
-function developStory(text, lang) {
-    let developed = text;
+async function developStory(text, lang) {
+    const languageNames = {
+        'ar': 'Arabic',
+        'he': 'Hebrew',
+        'en': 'English'
+    };
 
-    if (lang === 'ar') {
-        const adjectives = {
-            'الأسد': 'الأسد القوي ومَلِك الغابة،',
-            'الأرنب': 'الأرنب الصغير والذكي',
-            'الغابة': 'الغابة الكبيرة المليئة بالأشجار',
-            'الثعلب': 'الثعلب المكار',
-            'الملك': 'الملك العادل والمحبوب'
-        };
-        Object.keys(adjectives).forEach(key => {
-            if (Math.random() > 0.3) {
-                developed = developed.replace(new RegExp(`\\b${key}\\b`, 'g'), adjectives[key]);
-            }
-        });
-    } else if (lang === 'en') {
-        const adjectives = {
-            'lion': 'the mighty lion, king of the jungle,',
-            'rabbit': 'the small and clever rabbit',
-            'forest': 'the vast, enchanting forest',
-            'fox': 'the sly fox',
-            'king': 'the wise and just king'
-        };
-        Object.keys(adjectives).forEach(key => {
-            if (Math.random() > 0.3) {
-                developed = developed.replace(new RegExp(`\\b${key}\\b`, 'gi'), adjectives[key]);
-            }
-        });
+    const prompt = `You are a creative children's story enhancement expert.
+
+Task: Enhance this ${languageNames[lang]} story for children aged 6-12.
+
+Original Story:
+${text}
+
+Enhancements needed:
+1. Add more descriptive details (colors, sounds, feelings)
+2. Improve dialogue to sound more natural and engaging
+3. Add sensory descriptions (what characters see, hear, feel)
+4. Make the story more vivid and exciting
+5. Keep the core plot the same
+6. Use age-appropriate vocabulary (6-12 years)
+7. Write ENTIRELY in ${languageNames[lang]}
+
+Output ONLY the enhanced story, no explanations:
+
+Enhanced Story:`;
+
+    try {
+        const enhanced = await geminiAgent.generateContent(prompt);
+        return enhanced.trim();
+    } catch (error) {
+        console.error('AI Story Enhancement Error:', error);
+        return text;
     }
-    // Hebrew expansions could be added here similarly
-
-    return developed;
 }
 
 // ---------------------------------------------------------
