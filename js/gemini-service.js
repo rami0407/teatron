@@ -68,6 +68,22 @@ class GeminiService {
     cleanJson(text) {
         return text.replace(/```json/g, '').replace(/```/g, '').trim();
     }
+
+    /**
+     * Lists available models for the API key.
+     */
+    async listModels() {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${this.apiKey}`;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            console.log('Available Models:', data);
+            return data;
+        } catch (error) {
+            console.error('Error listing models:', error);
+            throw error;
+        }
+    }
 }
 
 // Export a single instance

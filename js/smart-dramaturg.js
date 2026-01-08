@@ -258,3 +258,23 @@ function showLoading(text) {
 function hideLoading() {
     document.getElementById('loadingOverlay').style.display = 'none';
 }
+
+// Debugging: Check Models
+const checkModelsBtn = document.getElementById('checkModelsBtn');
+if (checkModelsBtn) {
+    checkModelsBtn.addEventListener('click', async () => {
+        try {
+            alert('جاري فحص الموديلات... راجع الـ Console');
+            const models = await geminiAgent.listModels();
+            console.log(models);
+            if (models.models) {
+                const modelNames = models.models.map(m => m.name).join('\n');
+                alert('الموديلات المتاحة:\n' + modelNames);
+            } else {
+                alert('لم يتم العثور على موديلات (راجع الخطأ في Console)');
+            }
+        } catch (error) {
+            alert('خطأ في الفحص: ' + error.message);
+        }
+    });
+}
