@@ -2,6 +2,10 @@
 // This file handles the interaction for the 3-stage creative workshop.
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("Smart Dramaturg Script Loaded v3");
+    // Alert only once per session if possible, but for debug, always show
+    // alert("🛠️ تم تحديث الصفحة بنجاح! جرب زر الفحص الآن."); 
+
     // Stage Transitions
     setupNavigation();
 
