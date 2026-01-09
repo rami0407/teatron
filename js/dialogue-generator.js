@@ -2,7 +2,7 @@
 // Handles multi-step form navigation and data collection
 
 let currentStep = 1;
-const totalSteps = 5;
+const totalSteps = 3; // Updated: 3 steps instead of 5
 let selectedPuppets = [];
 const maxPuppets = 2;
 let isGuestMode = false; // Guest mode flag
@@ -47,6 +47,20 @@ document.addEventListener('DOMContentLoaded', () => {
     prevBtn.addEventListener('click', previousStep);
     nextBtn.addEventListener('click', nextStep);
     form.addEventListener('submit', handleSubmit);
+
+    // Custom location handler
+    const locationSelect = document.getElementById('locationSelect');
+    if (locationSelect) {
+        locationSelect.addEventListener('change', (e) => {
+            const customInput = document.getElementById('customLocationInput');
+            if (e.target.value === 'custom') {
+                customInput.style.display = 'block';
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
+        });
+    }
 });
 
 // ============================================
@@ -412,32 +426,25 @@ async function handleSubmit(e) {
 }
 
 function collectFormData() {
+    // Updated to collect new story-focused data
     const formData = {
-        psychological: {
-            mood: getRadioValue('mood'),
-            confidence: parseInt(document.querySelector('[name="confidence"]').value),
-            fears: getCheckboxValues('fears'),
-            happiness: document.querySelector('[name="happiness"]').value
-        },
-        educational: {
+        basic: {
             grade: document.querySelector('[name="grade"]').value,
-            favoriteSubjects: getCheckboxValues('subjects'),
-            learningStyle: getRadioValue('learningStyle'),
-            scienceTopic: document.querySelector('[name="scienceTopic"]').value
+            subjects: getCheckboxValues('subjects')
         },
-        behavioral: {
-            introvert: parseInt(document.querySelector('[name="introvert"]').value),
-            leadership: parseInt(document.querySelector('[name="leadership"]').value),
-            cooperation: parseInt(document.querySelector('[name="cooperation"]').value),
-            strengths: getCheckboxValues('strengths')
+        story: {
+            genre: getRadioValue('storyGenre'),
+            topic: document.querySelector('[name="storyTopic"]').value,
+            problem: document.querySelector('[name="storyProblem"]').value,
+            value: document.querySelector('[name="storyValue"]').value || '',
+            ending: getRadioValue('endingType'),
+            location: document.querySelector('[name="location"]').value,
+            customLocation: document.querySelector('[name="customLocation"]')?.value || ''
         },
         puppets: selectedPuppets,
         settings: {
             language: getRadioValue('language'),
-            length: getRadioValue('length'),
-            storyType: getRadioValue('storyType'),
-            title: document.querySelector('[name="title"]').value,
-            notes: document.querySelector('[name="notes"]').value
+            length: getRadioValue('length')
         }
     };
 

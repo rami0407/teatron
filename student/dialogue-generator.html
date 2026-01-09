@@ -44,125 +44,27 @@
         <div class="progress-bar">
             <div class="progress-step active" data-step="1">
                 <div class="step-circle">1</div>
-                <div class="step-label">التقييم النفسي</div>
+                <div class="step-label">معلومات أساسية</div>
             </div>
             <div class="progress-line"></div>
             <div class="progress-step" data-step="2">
                 <div class="step-circle">2</div>
-                <div class="step-label">التقييم التعليمي</div>
+                <div class="step-label">تفاصيل القصة</div>
             </div>
             <div class="progress-line"></div>
             <div class="progress-step" data-step="3">
                 <div class="step-circle">3</div>
-                <div class="step-label">التقييم السلوكي</div>
-            </div>
-            <div class="progress-line"></div>
-            <div class="progress-step" data-step="4">
-                <div class="step-circle">4</div>
-                <div class="step-label">اختيار الدمى</div>
-            </div>
-            <div class="progress-line"></div>
-            <div class="progress-step" data-step="5">
-                <div class="step-circle">5</div>
-                <div class="step-label">إعدادات الحوار</div>
+                <div class="step-label">الإنتاج</div>
             </div>
         </div>
 
         <!-- Form Steps -->
-        <form id="assessmentForm">
-            <!-- Step 1: Psychological Assessment -->
+        <form id="assessmentForm" novalidate>
+            <!-- Step 1: Basic Information -->
             <div class="form-step active" data-step="1">
                 <div class="step-content">
-                    <h2>😊 التقييم النفسي</h2>
-                    <p class="step-description">ساعدنا في فهم حالتك النفسية لنصنع لك حواراً يناسبك</p>
-
-                    <div class="question-group">
-                        <label class="question-label">كيف تشعر اليوم؟</label>
-                        <div class="emoji-options">
-                            <label class="emoji-option">
-                                <input type="radio" name="mood" value="very_happy" required>
-                                <span class="emoji">😄</span>
-                                <span class="emoji-label">سعيد جداً</span>
-                            </label>
-                            <label class="emoji-option">
-                                <input type="radio" name="mood" value="happy">
-                                <span class="emoji">😊</span>
-                                <span class="emoji-label">سعيد</span>
-                            </label>
-                            <label class="emoji-option">
-                                <input type="radio" name="mood" value="neutral">
-                                <span class="emoji">😐</span>
-                                <span class="emoji-label">عادي</span>
-                            </label>
-                            <label class="emoji-option">
-                                <input type="radio" name="mood" value="sad">
-                                <span class="emoji">😔</span>
-                                <span class="emoji-label">حزين</span>
-                            </label>
-                            <label class="emoji-option">
-                                <input type="radio" name="mood" value="anxious">
-                                <span class="emoji">😰</span>
-                                <span class="emoji-label">قلق</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="question-group">
-                        <label class="question-label">كيف تقيّم ثقتك بنفسك؟</label>
-                        <div class="slider-container">
-                            <input type="range" name="confidence" min="1" max="5" value="3" class="slider"
-                                id="confidenceSlider">
-                            <div class="slider-labels">
-                                <span>منخفضة</span>
-                                <span id="confidenceValue">متوسطة</span>
-                                <span>عالية جداً</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="question-group">
-                        <label class="question-label">ما الذي يقلقك أو يخيفك أحياناً؟ (اختر ما يناسبك)</label>
-                        <div class="checkbox-options">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="fears" value="darkness">
-                                <span>🌙 الظلام</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="fears" value="heights">
-                                <span>🏔️ الأماكن العالية</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="fears" value="public_speaking">
-                                <span>🎤 التحدث أمام الناس</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="fears" value="failure">
-                                <span>❌ الفشل</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="fears" value="loneliness">
-                                <span>😢 الوحدة</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="fears" value="none">
-                                <span>✨ لا شيء يقلقني</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="question-group">
-                        <label class="question-label">ما الذي يجعلك سعيداً؟</label>
-                        <textarea name="happiness" rows="3" class="text-input"
-                            placeholder="مثال: اللعب مع أصدقائي، قراءة القصص، التجارب العلمية..."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 2: Educational Assessment -->
-            <div class="form-step" data-step="2">
-                <div class="step-content">
-                    <h2>📚 التقييم التعليمي</h2>
-                    <p class="step-description">ساعدنا في فهم اهتماماتك التعليمية</p>
+                    <h2>📚 معلومات أساسية</h2>
+                    <p class="step-description">أخبرنا قليلاً عنك لنصنع حواراً مناسباً لمستواك</p>
 
                     <div class="question-group">
                         <label class="question-label">ما هو صفك الدراسي؟</label>
@@ -201,130 +103,120 @@
                                 <span>💻 التكنولوجيا</span>
                             </label>
                             <label class="checkbox-option">
-                                <input type="checkbox" name="subjects" value="sports">
-                                <span>⚽ الرياضة</span>
+                                <input type="checkbox" name="subjects" value="social">
+                                <span>🌍 العلوم الاجتماعية</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Story Details -->
+            <div class="form-step" data-step="2">
+                <div class="step-content">
+                    <h2>🎭 تفاصيل القصة</h2>
+                    <p class="step-description">أخبرنا عن القصة التي تريد أن يرويها الحوار</p>
+
+                    <div class="question-group">
+                        <label class="question-label">ما نوع القصة التي تريدها؟</label>
+                        <div class="story-types">
+                            <label class="story-type">
+                                <input type="radio" name="storyGenre" value="fantasy" required>
+                                <div class="type-card">
+                                    <span class="type-icon">🌟</span>
+                                    <span class="type-name">خيالية</span>
+                                    <span class="type-desc">سحر، مخلوقات خرافية</span>
+                                </div>
+                            </label>
+                            <label class="story-type">
+                                <input type="radio" name="storyGenre" value="realistic">
+                                <div class="type-card">
+                                    <span class="type-icon">🏠</span>
+                                    <span class="type-name">واقعية</span>
+                                    <span class="type-desc">أحداث يومية</span>
+                                </div>
+                            </label>
+                            <label class="story-type">
+                                <input type="radio" name="storyGenre" value="adventure">
+                                <div class="type-card">
+                                    <span class="type-icon">🗺️</span>
+                                    <span class="type-name">مغامرة</span>
+                                    <span class="type-desc">رحلات، استكشاف</span>
+                                </div>
+                            </label>
+                            <label class="story-type">
+                                <input type="radio" name="storyGenre" value="educational">
+                                <div class="type-card">
+                                    <span class="type-icon">🔬</span>
+                                    <span class="type-name">تعليمية</span>
+                                    <span class="type-desc">معلومات STEM</span>
+                                </div>
                             </label>
                         </div>
                     </div>
 
                     <div class="question-group">
-                        <label class="question-label">كيف تفضل التعلم؟</label>
+                        <label class="question-label">ما موضوع القصة؟</label>
+                        <textarea name="storyTopic" rows="2" class="text-input"
+                            placeholder="مثال: رحلة إلى الفضاء، صداقة بين حيوانات، اختراع جديد، حل لغز..."
+                            required></textarea>
+                    </div>
+
+                    <div class="question-group">
+                        <label class="question-label">ما المشكلة أو التحدي في القصة؟</label>
+                        <textarea name="storyProblem" rows="2" class="text-input"
+                            placeholder="مثال: ضياع مفتاح سري، خلاف بين صديقين، لغز يحتاج حل، مهمة صعبة..."
+                            required></textarea>
+                    </div>
+
+                    <div class="question-group">
+                        <label class="question-label">ما القيمة أو الدرس المطلوب؟ (اختياري)</label>
+                        <textarea name="storyValue" rows="2" class="text-input"
+                            placeholder="مثال: التعاون، الصدق، الشجاعة، المثابرة، الاحترام... (يمكن تركه فارغاً)"></textarea>
+                    </div>
+
+                    <div class="question-group">
+                        <label class="question-label">كيف تريد أن تنتهي القصة؟</label>
                         <div class="radio-options">
                             <label class="radio-option">
-                                <input type="radio" name="learningStyle" value="visual" required>
-                                <span>👁️ أفضل الصور والرسومات</span>
+                                <input type="radio" name="endingType" value="happy" required>
+                                <span>😊 نهاية سعيدة</span>
                             </label>
                             <label class="radio-option">
-                                <input type="radio" name="learningStyle" value="auditory">
-                                <span>👂 أفضل الاستماع والشرح</span>
+                                <input type="radio" name="endingType" value="open">
+                                <span>🤔 نهاية مفتوحة</span>
                             </label>
                             <label class="radio-option">
-                                <input type="radio" name="learningStyle" value="kinesthetic">
-                                <span>🤲 أفضل التجربة والعمل اليدوي</span>
+                                <input type="radio" name="endingType" value="lesson">
+                                <span>📚 نهاية تعليمية</span>
                             </label>
                             <label class="radio-option">
-                                <input type="radio" name="learningStyle" value="reading">
-                                <span>📚 أفضل القراءة والكتابة</span>
+                                <input type="radio" name="endingType" value="surprise">
+                                <span>😮 نهاية مفاجئة</span>
                             </label>
                         </div>
                     </div>
 
                     <div class="question-group">
-                        <label class="question-label">ما هو موضوعك العلمي المفضل؟</label>
-                        <select name="scienceTopic" class="select-input">
-                            <option value="">اختر موضوعاً</option>
-                            <option value="space">🚀 الفضاء والكواكب</option>
-                            <option value="animals">🦁 الحيوانات والطبيعة</option>
-                            <option value="human_body">🫀 جسم الإنسان</option>
-                            <option value="water_cycle">💧 دورة المياه</option>
-                            <option value="plants">🌱 النباتات</option>
-                            <option value="weather">⛅ الطقس والفصول</option>
-                            <option value="energy">⚡ الطاقة</option>
-                            <option value="inventions">💡 الاختراعات</option>
+                        <label class="question-label">أين تدور أحداث القصة؟</label>
+                        <select name="location" class="select-input" id="locationSelect" required>
+                            <option value="">اختر المكان</option>
+                            <option value="forest">🌳 غابة</option>
+                            <option value="school">🏫 مدرسة</option>
+                            <option value="space">🚀 الفضاء</option>
+                            <option value="home">🏠 البيت</option>
+                            <option value="castle">🏰 قصر/قلعة</option>
+                            <option value="ocean">🌊 البحر/الشاطئ</option>
+                            <option value="custom">✏️ مكان آخر (أكتبه)</option>
                         </select>
+                        <textarea name="customLocation" rows="1" class="text-input" id="customLocationInput"
+                            style="display:none; margin-top:10px;" placeholder="اكتب المكان الذي تريده..."></textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- Step 3: Behavioral Assessment -->
+            <!-- Step 3: Puppet Selection -->
             <div class="form-step" data-step="3">
-                <div class="step-content">
-                    <h2>🎭 التقييم السلوكي</h2>
-                    <p class="step-description">ساعدنا في فهم شخصيتك وطريقة تفاعلك</p>
-
-                    <div class="question-group">
-                        <label class="question-label">هل أنت شخص منفتح أم تفضل الهدوء؟</label>
-                        <div class="slider-container">
-                            <input type="range" name="introvert" min="1" max="5" value="3" class="slider"
-                                id="introvertSlider">
-                            <div class="slider-labels">
-                                <span>🤫 هادئ ومنطوي</span>
-                                <span id="introvertValue">متوازن</span>
-                                <span>🗣️ منفتح ونشيط</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="question-group">
-                        <label class="question-label">هل تفضل القيادة أم تحب أن يقودك الآخرون؟</label>
-                        <div class="slider-container">
-                            <input type="range" name="leadership" min="1" max="5" value="3" class="slider"
-                                id="leadershipSlider">
-                            <div class="slider-labels">
-                                <span>👥 أفضل التبعية</span>
-                                <span id="leadershipValue">متوازن</span>
-                                <span>👑 أحب القيادة</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="question-group">
-                        <label class="question-label">كيف تتعامل مع الآخرين؟</label>
-                        <div class="slider-container">
-                            <input type="range" name="cooperation" min="1" max="5" value="3" class="slider"
-                                id="cooperationSlider">
-                            <div class="slider-labels">
-                                <span>أفضل العمل وحدي</span>
-                                <span id="cooperationValue">متوازن</span>
-                                <span>أحب العمل الجماعي</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="question-group">
-                        <label class="question-label">ما هي نقاط قوتك؟ (اختر ما يناسبك)</label>
-                        <div class="checkbox-options">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="strengths" value="creative">
-                                <span>🎨 الإبداع</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="strengths" value="logical">
-                                <span>🧠 التفكير المنطقي</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="strengths" value="empathy">
-                                <span>❤️ التعاطف مع الآخرين</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="strengths" value="problem_solving">
-                                <span>🔍 حل المشكلات</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="strengths" value="communication">
-                                <span>💬 التواصل</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="strengths" value="persistence">
-                                <span>💪 المثابرة</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 4: Puppet Selection -->
-            <div class="form-step" data-step="4">
                 <div class="step-content">
                     <h2>🎭 اختيار الدمى</h2>
                     <p class="step-description">اختر دمية واحدة أو دميتين لحوارك المسرحي</p>
@@ -340,14 +232,11 @@
                             <p>جارٍ تحميل الدمى...</p>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Step 5: Dialogue Settings -->
-            <div class="form-step" data-step="5">
-                <div class="step-content">
-                    <h2>⚙️ إعدادات الحوار</h2>
-                    <p class="step-description">اختر تفاصيل الحوار الذي تريده</p>
+                    <!-- Dialogue Settings in same step -->
+                    <hr style="margin: 30px 0; border: none; border-top: 2px solid #f0f0f0;">
+
+                    <h3 style="margin-top: 30px;">⚙️ إعدادات الحوار</h3>
 
                     <div class="question-group">
                         <label class="question-label">اختر لغة الحوار</label>
@@ -386,55 +275,6 @@
                                 <span>📜 طويل (5-10 دقائق)</span>
                             </label>
                         </div>
-                    </div>
-
-                    <div class="question-group">
-                        <label class="question-label">نوع القصة المفضل</label>
-                        <div class="story-types">
-                            <label class="story-type">
-                                <input type="radio" name="storyType" value="educational" required>
-                                <div class="type-card">
-                                    <span class="type-icon">🔬</span>
-                                    <span class="type-name">تعليمي</span>
-                                    <span class="type-desc">قصة تحتوي على معلومات STEM</span>
-                                </div>
-                            </label>
-                            <label class="story-type">
-                                <input type="radio" name="storyType" value="comedy">
-                                <div class="type-card">
-                                    <span class="type-icon">😄</span>
-                                    <span class="type-name">كوميدي</span>
-                                    <span class="type-desc">قصة مضحكة ومرحة</span>
-                                </div>
-                            </label>
-                            <label class="story-type">
-                                <input type="radio" name="storyType" value="adventure">
-                                <div class="type-card">
-                                    <span class="type-icon">🗺️</span>
-                                    <span class="type-name">مغامرة</span>
-                                    <span class="type-desc">قصة مليئة بالإثارة والتشويق</span>
-                                </div>
-                            </label>
-                            <label class="story-type">
-                                <input type="radio" name="storyType" value="moral">
-                                <div class="type-card">
-                                    <span class="type-icon">💎</span>
-                                    <span class="type-name">أخلاقي</span>
-                                    <span class="type-desc">قصة تحمل قيماً وأخلاقاً</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="question-group">
-                        <label class="question-label">اكتب عنوان الحوار (اختياري)</label>
-                        <input type="text" name="title" class="text-input" placeholder="مثال: رحلة إلى الفضاء">
-                    </div>
-
-                    <div class="question-group">
-                        <label class="question-label">ملاحظات إضافية (اختياري)</label>
-                        <textarea name="notes" rows="3" class="text-input"
-                            placeholder="أي أفكار أو طلبات خاصة للحوار..."></textarea>
                     </div>
                 </div>
             </div>
