@@ -142,8 +142,8 @@ function displayDialogue() {
     // Set metadata
     document.getElementById('puppetCount').textContent = currentDialogue.puppets.length;
     document.getElementById('dialogueLanguage').textContent = getLanguageName(currentDialogue.language);
-    document.getElementById('dialogueLength').textContent = getLengthName(currentAssessment.settings.length);
-    document.getElementById('dialogueType').textContent = getTypeName(currentAssessment.settings.storyType);
+    document.getElementById('dialogueLength').textContent = getLengthName(currentAssessment.settings?.length || 'medium');
+    document.getElementById('dialogueType').textContent = getTypeName(currentAssessment.story?.genre || currentAssessment.settings?.storyType || 'general');
 
     // Display dialogue lines
     dialogueContent.innerHTML = '';
@@ -383,8 +383,8 @@ async function saveDialogue() {
             language: currentDialogue.language,
             puppets: currentDialogue.puppets.map(p => p.id),
             content: currentDialogue.content,
-            type: currentAssessment.settings.storyType,
-            length: currentAssessment.settings.length,
+            type: currentAssessment.story?.genre || currentAssessment.settings?.storyType || 'general',
+            length: currentAssessment.settings?.length || 'medium',
             status: 'draft',
             metadata: currentDialogue.metadata,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -415,8 +415,8 @@ function exportToTxt() {
     let textContent = `${currentDialogue.title}\n`;
     textContent += `${'='.repeat(currentDialogue.title.length)}\n\n`;
     textContent += `اللغة: ${getLanguageName(currentDialogue.language)}\n`;
-    textContent += `النوع: ${getTypeName(currentAssessment.settings.storyType)}\n`;
-    textContent += `الطول: ${getLengthName(currentAssessment.settings.length)}\n`;
+    textContent += `النوع: ${getTypeName(currentAssessment.story?.genre || currentAssessment.settings?.storyType || 'general')}\n`;
+    textContent += `الطول: ${getLengthName(currentAssessment.settings?.length || 'medium')}\n`;
     textContent += `الدمى: ${currentDialogue.puppets.map(p => p.name).join(', ')}\n\n`;
     textContent += `${'-'.repeat(50)}\n\n`;
 
@@ -477,7 +477,7 @@ async function exportToWord() {
                     new Paragraph({
                         children: [
                             new TextRun({
-                                text: `النوع: ${getTypeName(currentAssessment.settings.storyType)}`,
+                                text: `النوع: ${getTypeName(currentAssessment.story?.genre || currentAssessment.settings?.storyType || 'general')}`,
                                 bold: true
                             })
                         ],
@@ -487,7 +487,7 @@ async function exportToWord() {
                     new Paragraph({
                         children: [
                             new TextRun({
-                                text: `الطول: ${getLengthName(currentAssessment.settings.length)}`,
+                                text: `الطول: ${getLengthName(currentAssessment.settings?.length || 'medium')}`,
                                 bold: true
                             })
                         ],
