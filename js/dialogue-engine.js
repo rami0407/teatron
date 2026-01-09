@@ -4,9 +4,9 @@
 class DialogueEngine {
     constructor(assessmentData) {
         this.assessment = assessmentData;
-        this.language = assessmentData.settings.language;
-        this.storyType = assessmentData.settings.storyType;
-        this.length = assessmentData.settings.length;
+        this.language = assessmentData.settings?.language || 'ar';
+        this.storyType = assessmentData.story?.genre || assessmentData.settings?.storyType || 'general';
+        this.length = assessmentData.settings?.length || 'medium';
         this.puppets = [];
     }
 
@@ -501,7 +501,7 @@ NOW GENERATE THE COMPLETE ${lengthSpec.min}-${lengthSpec.max} LINE THEATRICAL SH
             engine: 'groq-llama-3.3',
             timestamp: Date.now(),
             language: this.language,
-            storyType: this.storyType,
+            storyType: this.storyType || 'general',
             puppetCount: this.puppets.length
         };
     }
