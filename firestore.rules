@@ -64,11 +64,17 @@ service cloud.firestore {
     }
     
     // Assessments collection (for dialogue generator)
+    // UPDATED: Allow any authenticated user to create assessments
     match /assessments/{assessmentId} {
-      allow read: if isOwner(resource.data.studentId) || isTeacher() || isAdmin();
-      allow create: if isStudent() && request.auth.uid == request.resource.data.studentId;
-      allow update: if isOwner(resource.data.studentId);
-      allow delete: if isOwner(resource.data.studentId) || isAdmin();
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.studentId) || 
+        isTeacher() || 
+        isAdmin()
+      );
+      // Allow any authenticated user to create (not just students with role)
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.studentId;
+      allow update: if isAuthenticated() && isOwner(resource.data.studentId);
+      allow delete: if isAuthenticated() && (isOwner(resource.data.studentId) || isAdmin());
     }
     
     // Dialogues collection (generated dialogues)
