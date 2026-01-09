@@ -136,6 +136,12 @@ function updateProgressBar() {
 function validateCurrentStep() {
     const currentStepElement = document.querySelector(`.form-step[data-step="${currentStep}"]`);
 
+    // Safety check
+    if (!currentStepElement) {
+        console.error('Step element not found:', currentStep);
+        return true;
+    }
+
     // Get all required inputs in current step
     const requiredInputs = currentStepElement.querySelectorAll('[required]');
 
@@ -156,16 +162,16 @@ function validateCurrentStep() {
         }
     }
 
-    // Special validation for step 4 (puppet selection)
-    if (currentStep === 4) {
+    // Special validation for step 3 (puppet selection)
+    if (currentStep === 3) {
         if (selectedPuppets.length === 0) {
             alert('الرجاء اختيار دمية واحدة على الأقل');
             return false;
         }
     }
 
-    // Check subject selection limit (max 3)
-    if (currentStep === 2) {
+    // Check subject selection limit (max 3) - Step 1 now
+    if (currentStep === 1) {
         const selectedSubjects = currentStepElement.querySelectorAll('input[name="subjects"]:checked');
         if (selectedSubjects.length > 3) {
             alert('يمكنك اختيار 3 مواد كحد أقصى');
