@@ -16,28 +16,37 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if guest mode
+    // Check if guest mode via URL param OR if user is not logged in
     const urlParams = new URLSearchParams(window.location.search);
-    isGuestMode = urlParams.get('mode') === 'guest';
+    const urlGuestMode = urlParams.get('mode') === 'guest';
 
-    if (isGuestMode) {
-        console.log('Guest mode activated');
-        // Update UI for guest mode
-        const userGreeting = document.querySelector('.user-greeting');
-        if (userGreeting) {
-            userGreeting.innerHTML = '<strong>🎭 وضع الضيف</strong>';
+    // Wait for firebase auth to initialize
+    firebase.auth().onAuthStateChanged((user) => {
+        // Set guest mode if explicitly requested OR if no user is logged in
+        isGuestMode = urlGuestMode || !user;
+
+        console.log('Auth state:', user ? `Logged in as ${user.email}` : 'Guest');
+        console.log('Guest mode:', isGuestMode);
+
+        if (isGuestMode) {
+            console.log('🎭 Guest mode activated');
+            // Update UI for guest mode
+            const userGreeting = document.querySelector('.user-greeting');
+            if (userGreeting) {
+                userGreeting.innerHTML = '<strong>🎭 وضع الضيف</strong>';
+            }
+        } else {
+            // Load user name only if not guest
+            loadUserName();
         }
-    } else {
-        // Load user name only if not guest
-        loadUserName();
-    }
 
-    // Setup back button
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        backBtn.href = isGuestMode ? '../index.html' : 'dashboard.html';
-        backBtn.textContent = isGuestMode ? 'العودة للصفحة الرئيسية' : 'العودة للوحة التحكم';
-    }
+        // Setup back button
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) {
+            backBtn.href = isGuestMode ? '../index.html' : 'dashboard.html';
+            backBtn.textContent = isGuestMode ? 'العودة للصفحة الرئيسية' : 'العودة للوحة التحكم';
+        }
+    });
 
     initializeSliders();
     loadPuppets();
@@ -388,7 +397,9 @@ async function handleSubmit(e) {
 
     try {
         // Collect all form data
+        console.log('📝 Collecting form data...');
         const formData = collectFormData();
+        console.log('✅ Form data collected:', formData);
 
         if (isGuestMode) {
             // Guest mode: save to localStorage
@@ -425,9 +436,10 @@ async function handleSubmit(e) {
         }
 
     } catch (error) {
-        console.error('Error submitting form:', error);
+        console.error('❌ Error submitting form:', error);
+        console.error('Error details:', error.message, error.stack);
         loadingOverlay.style.display = 'none';
-        alert('حدث خطأ أثناء إرسال البيانات. الرجاء المحاولة مرة أخرى.');
+        alert(`حدث خطأ أثناء إرسال البيانات:\n${error.message}\n\nالرجاء المحاولة مرة أخرى.`);
     }
 }
 
