@@ -259,7 +259,7 @@ OUTPUT FORMAT (JSON only, no markdown, no code blocks):
 1. Write ENTIRELY in ${languageNames[this.language]}
 2. Age-appropriate language (6-12 years)
 3. DETAILED stage directions: يدخل من اليمين، يقفز بفرح، يجلس حزيناً، ينظر للجمهور، يمسك بشيء، يركض، etc.
-4. Story type: ${storyTypeDesc}
+4. Story type: ${genreDesc}
 5. Make it ENGAGING, MEANINGFUL, and EDUCATIONAL
 6. Include emotional depth, not just simple greetings
 7. Each line MUST have both "text" (what puppet says) and "action" (what puppet does)
