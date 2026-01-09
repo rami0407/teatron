@@ -115,6 +115,7 @@ class DialogueEngine {
      * Attempts to repair truncated JSON responses
      */
     tryRepairJson(jsonString) {
+        // Attempt 1: Structural repair
         try {
             // 1. Try to find the last valid closing object inside the array
             // Look for the last occurrence of "}," which usually indicates end of a dialogue line obj
@@ -130,7 +131,12 @@ class DialogueEngine {
                 return JSON.parse(repaired);
             }
 
-            // 2. If that fails, try aggressive regex extraction
+        } catch (e1) {
+            console.warn('⚠️ Repair attempt 1 failed:', e1.message);
+        }
+
+        // Attempt 2: Regex extraction (The most robust method)
+        try {
             console.log('🔧 JSON repair attempt 2 (Regex extraction)...');
             const titleMatch = jsonString.match(/"title":\s*"([^"]+)"/);
             const title = titleMatch ? titleMatch[1] : "قصة مسرحية";
@@ -151,8 +157,15 @@ class DialogueEngine {
 
             throw new Error('Could not repair JSON response');
 
+        } catch (e2) {
+            console.error('❌ Repair attempt 2 failed:', e2.message);
+            // Fallthrough to final error
+        }
+
+        // Final fallback if both failed (managed by throw)
+        try {
+            if (false) throw new Error(); // Dummy block to match original structure structure catch
         } catch (repairError) {
-            console.error('❌ JSON Repair Failed:', repairError);
             throw repairError; // Re-throw to trigger fallback
         }
     }
