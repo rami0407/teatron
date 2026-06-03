@@ -92,5 +92,21 @@ service cloud.firestore {
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
       allow update, delete: if isOwner(resource.data.userId) || isAdmin();
     }
+
+    // Plan Project Collections (Shared Database Compatibility)
+    match /notifications/{id} { allow read, write: if isAuthenticated(); }
+    match /calendarEvents/{id} { allow read, write: if isAuthenticated(); }
+    match /pendingUsers/{id} { allow read, write: if isAuthenticated(); }
+    match /coordinators/{id} { allow read, write: if isAuthenticated(); }
+    match /annualPlans/{id} { allow read, write: if isAuthenticated(); }
+    match /workPlans/{id} { allow read, write: if isAuthenticated(); }
+    match /interventionPlans/{id} { allow read, write: if isAuthenticated(); }
+    match /classes/{id} { allow read, write: if isAuthenticated(); }
+    match /students/{id} { allow read, write: if isAuthenticated(); }
+    match /tasks/{id} { allow read, write: if isAuthenticated(); }
+    match /protocols/{id} { allow read, write: if isAuthenticated(); }
+    match /personalInterventionPlans/{id} { allow read, write: if isAuthenticated(); }
+    match /studentAssessments/{id} { allow read, write: if isAuthenticated(); }
   }
 }
+
