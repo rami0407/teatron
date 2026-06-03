@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎭 فعالية البطاقات التفاعلية | مسرح الدمى STEM</title>
+    <meta name="description"
+        content="فعالية بطاقات تفاعلية لمسرح الدمى STEM تمكن الطلاب من كتابة تعليقات وإجابات على بطاقات العلوم والدمى والتحديات">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/cards.css">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🎭</span>
+                <span>مسرح الدمى STEM</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="cards-activity.html" class="active">فعالية البطاقات</a></li>
+                <li><a href="index.html#features">الميزات</a></li>
+                <li><a href="index.html#about">عن المنصة</a></li>
+                <li id="navAuthLink"><a href="auth/login.html" class="btn btn-secondary btn-sm">تسجيل الدخول</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="cards-page">
+        <div class="container">
+            <div class="text-center mb-3">
+                <h1>🃏 فعالية البطاقات التفاعلية</h1>
+                <p class="section-subtitle">اختر بطاقة لقلبها، واستكشف مفهوم STEM، ثم اكتب تعليقك أو إجابتك الإبداعية بالأسفل!</p>
+            </div>
+
+            <!-- Categories Filter -->
+            <div class="filter-container">
+                <button class="filter-btn active" data-category="all">🌟 الكل</button>
+                <button class="filter-btn" data-category="science">🔬 العلوم والتكنولوجيا</button>
+                <button class="filter-btn" data-category="math-eng">📐 الهندسة والرياضيات</button>
+                <button class="filter-btn" data-category="puppets">🦊 شخصيات الدمى</button>
+                <button class="filter-btn" data-category="challenges">⛰️ تحديات القصة</button>
+            </div>
+
+            <!-- Cards Grid -->
+            <div id="cardsGrid" class="cards-grid">
+                <!-- Cards will be dynamically injected here via JavaScript -->
+                <div class="loading-state flex-center flex-column" style="grid-column: 1 / -1; padding: var(--spacing-xl) 0;">
+                    <div class="spinner"></div>
+                    <p class="mt-1">جاري تحميل البطاقات التعليمية...</p>
+                </div>
+            </div>
+
+            <!-- Reflections / Comments Section (Hidden until a card is flipped/clicked) -->
+            <section id="reflectionSection" class="reflection-section">
+                <div class="reflection-header">
+                    <h3>💬 تعليقات الطلاب على بطاقة: <span id="activeCardTitle" style="color: var(--primary);">اسم البطاقة</span></h3>
+                    <span class="close-reflection" id="closeReflectionBtn" title="إغلاق التعليقات">&times;</span>
+                </div>
+
+                <!-- Comment Input Form -->
+                <div class="comment-input-area card">
+                    <h4 style="color: var(--primary-dark); margin-bottom: var(--spacing-xs);">✍️ أضف تعليقك أو فكرتك الإبداعية:</h4>
+                    
+                    <div class="form-group" id="guestNameGroup">
+                        <label for="commentAuthorName">اسمك المفضل للمشاركة:</label>
+                        <input type="text" id="commentAuthorName" placeholder="مثال: أحمد، رامي البطل..." class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="commentText">اكتب تعليقك، إجابتك عن السؤال، أو مقترحاً لمشهد مسرحي:</label>
+                        <textarea id="commentText" placeholder="اكتب تعليقك هنا..." required></textarea>
+                    </div>
+
+                    <button id="submitCommentBtn" class="btn btn-primary" style="align-self: flex-start;">📨 حفظ وإرسال التعليق</button>
+                </div>
+
+                <!-- Recent Reflections List -->
+                <div class="comments-list-section">
+                    <h4>👥 التعليقات والإجابات السابقة للطلاب:</h4>
+                    <div id="commentsList" class="comments-list">
+                        <!-- Comments will be dynamically loaded here from Firestore -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p>&copy; 2026 منصة مسرح الدمى STEM. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs (Compat mode) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/cards.js"></script>
+</body>
+
+</html>
