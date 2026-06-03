@@ -1,13 +1,14 @@
 // Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAfvf6nvc5yA33BgJqgGbQ_SO8G0857hIU",
-  authDomain: "teatron-c8f6f.firebaseapp.com",
-  projectId: "teatron-c8f6f",
-  storageBucket: "teatron-c8f6f.firebasestorage.app",
-  messagingSenderId: "395041638044",
-  appId: "1:395041638044:web:2982dad13b3c51b78ecf59",
-  measurementId: "G-J83QFXDPKS"
+  apiKey: "AIzaSyCMCXiCaiwRrZ6ms_337MZAXstGeow-2hE",
+  authDomain: "gen-lang-client-0576446793.firebaseapp.com",
+  projectId: "gen-lang-client-0576446793",
+  storageBucket: "gen-lang-client-0576446793.firebasestorage.app",
+  messagingSenderId: "341882667122",
+  appId: "1:341882667122:web:9558ee8db16e3d3b5c42eb",
+  measurementId: "G-26FCGHGJ9B"
 };
+
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
